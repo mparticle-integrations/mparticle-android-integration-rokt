@@ -1,12 +1,10 @@
 package com.mparticle.kits
 
-import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Bundle
 import com.mparticle.commerce.CommerceEvent
 import com.mparticle.identity.MParticleUser
 import com.mparticle.internal.Logger
@@ -20,7 +18,7 @@ import java.math.BigDecimal
  *
  * Learn more at our [Developer Docs](https://docs.rokt.com/developers/integration-guides/android)
  */
-class RoktKit : KitIntegration(), ActivityListener, CommerceListener, IdentityListener {
+class RoktKit : KitIntegration(), CommerceListener, IdentityListener {
     private var applicationContext: Context? = null
 
     override fun getName(): String = NAME
@@ -58,34 +56,6 @@ class RoktKit : KitIntegration(), ActivityListener, CommerceListener, IdentityLi
     public override fun reset() {
         super.reset()
     }
-
-    /*
-     * Overrides for ActivityListener
-     */
-    override fun onActivityCreated(activity: Activity, bundle: Bundle?): List<ReportingMessage> {
-        return emptyList()
-    }
-
-    override fun onActivityStarted(activity: Activity): List<ReportingMessage> {
-        return emptyList()
-    }
-
-    override fun onActivityResumed(activity: Activity): List<ReportingMessage> {
-        return emptyList()
-    }
-
-    override fun onActivityPaused(activity: Activity): List<ReportingMessage> = emptyList()
-
-    override fun onActivityStopped(activity: Activity): List<ReportingMessage> = emptyList()
-
-
-    override fun onActivitySaveInstanceState(
-        activity: Activity,
-        bundle: Bundle?
-    ): List<ReportingMessage> = emptyList()
-
-    override fun onActivityDestroyed(activity: Activity): List<ReportingMessage> = emptyList()
-
 
     /*
      * Overrides for CommerceListener
