@@ -36,7 +36,7 @@ apply plugin: 'com.mparticle.kit'
 
 android {
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
         consumerProguardFiles 'consumer-proguard.pro'
     }
 
@@ -46,6 +46,14 @@ android {
             jvmArgs += ['--add-opens', 'java.base/java.lang=ALL-UNNAMED']
             jvmArgs += ['--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED']
         }
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+    maven {
+        url "https://apps.rokt.com/msdk"
     }
 }
 

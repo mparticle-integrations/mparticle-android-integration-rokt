@@ -32,9 +32,9 @@ class RoktKit : KitIntegration(), ActivityListener, CommerceListener, IdentityLi
         ctx: Context
     ): List<ReportingMessage> {
         applicationContext = ctx.applicationContext
-        val roktTagId = settings[ROKT_TAG_ID]
+        val roktTagId = settings[ROKT_ACCOUNT_ID]
         if (KitUtils.isEmpty(roktTagId)) {
-            throwOnKitCreateError(NO_ROKT_TAG_ID)
+            throwOnKitCreateError(NO_ROKT_ACCOUNT_ID)
         }
         applicationContext?.let {
             val manager = context.packageManager
@@ -138,8 +138,8 @@ class RoktKit : KitIntegration(), ActivityListener, CommerceListener, IdentityLi
 
     companion object {
         const val NAME = "Rokt"
-        const val ROKT_TAG_ID = "rokt_tag_id"
-        const val NO_ROKT_TAG_ID = "No Rokt tag ID provided, can't initialize kit."
+        const val ROKT_ACCOUNT_ID = "accountId"
+        const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
 }
