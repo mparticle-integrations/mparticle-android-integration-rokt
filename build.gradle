@@ -36,7 +36,7 @@ apply plugin: 'com.mparticle.kit'
 
 android {
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
         consumerProguardFiles 'consumer-proguard.pro'
     }
 
