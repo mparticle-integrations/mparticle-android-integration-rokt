@@ -36,10 +36,12 @@ apply plugin: 'com.mparticle.kit'
 
 android {
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
         consumerProguardFiles 'consumer-proguard.pro'
     }
-
+    lint {
+        disable "NullSafeMutableLiveData"
+    }
     testOptions {
         unitTests.returnDefaultValues = true
         unitTests.all {
@@ -49,9 +51,19 @@ android {
     }
 }
 
+repositories {
+    google()
+    mavenCentral()
+    maven {
+        url "https://apps.rokt.com/msdk"
+    }
+}
+
 dependencies {
     implementation 'androidx.annotation:annotation:1.5.0'
     api 'com.rokt:roktsdk:4.8.1'
+
+    testImplementation  files('libs/java-json.jar')
     testImplementation 'com.squareup.assertj:assertj-android:1.2.0'
     testImplementation ("io.mockk:mockk:1.13.4")
 }
