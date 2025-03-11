@@ -49,6 +49,14 @@ android {
     }
 }
 
+repositories {
+    google()
+    mavenCentral()
+    maven {
+        url "https://apps.rokt.com/msdk"
+    }
+}
+
 dependencies {
     implementation 'androidx.annotation:annotation:1.5.0'
     api 'com.rokt:roktsdk:4.8.1'
