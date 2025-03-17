@@ -7,7 +7,6 @@ buildscript {
 
     repositories {
         google()
-        mavenLocal()
         mavenCentral()
     }
     dependencies {
@@ -51,6 +50,7 @@ android {
 
 repositories {
     google()
+    mavenLocal()
     mavenCentral()
     maven {
         url "https://apps.rokt.com/msdk"
@@ -59,7 +59,7 @@ repositories {
 
 dependencies {
     implementation 'androidx.annotation:annotation:1.5.0'
-    api 'com.rokt:roktsdk:4.8.1'
+    api 'com.rokt:roktsdk:4.8.3' // this is subject to change
     testImplementation 'com.squareup.assertj:assertj-android:1.2.0'
     testImplementation ("io.mockk:mockk:1.13.4")
 }

@@ -40,7 +40,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener {
                 try {
                     val info = manager.getPackageInfoForApp(context.packageName, 0)
                     val application = context.applicationContext as Application
-                    Rokt.init(roktTagId, info.versionName , application)
+                    Rokt.init("2754655826098840951", info.versionName , application)
                 } catch (e: PackageManager.NameNotFoundException) {
                     throwOnKitCreateError(NO_APP_VERSION_FOUND)
                 } catch (e: Exception) {
@@ -63,7 +63,9 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener {
     override fun logLtvIncrease(
         bigDecimal: BigDecimal, bigDecimal1: BigDecimal,
         s: String, map: Map<String, String>
-    ): List<ReportingMessage> = emptyList()
+    ): List<ReportingMessage> {
+        return emptyList()
+    }
 
     override fun logEvent(commerceEvent: CommerceEvent): List<ReportingMessage> {
         return emptyList()
@@ -94,9 +96,12 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener {
         mParticleUser: MParticleUser,
         filteredIdentityApiRequest: FilteredIdentityApiRequest
     ) {
+        sendAttributes(mParticleUser)
     }
 
-    override fun onUserIdentified(mParticleUser: MParticleUser) {}
+    override fun onUserIdentified(mParticleUser: MParticleUser) {
+        sendAttributes(mParticleUser)
+    }
 
     private fun logError(message: String, t: Throwable) {
         Logger.error(t, "RoktKit: $message")
@@ -104,6 +109,32 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener {
 
     private fun throwOnKitCreateError(message: String) {
         throw IllegalArgumentException(message)
+    }
+
+    private fun sendAttributes(mParticleUser: MParticleUser) {
+        val userIdentities = mParticleUser.userIdentities
+        val userAttributes = mParticleUser.userAttributes
+
+        val roktAttributes = mutableMapOf<String, String>()
+
+        // Process user identities if present
+        if (userIdentities.isNotEmpty()) {
+            userIdentities.forEach { (key, value) ->
+                roktAttributes["mp_$key"] = value.toString()
+            }
+        }
+
+        // Process user attributes if present
+        if (userAttributes.isNotEmpty()) {
+            userAttributes.forEach { (key, value) ->
+                roktAttributes["mp_$key"] = value.toString()
+            }
+        }
+
+        // Set attributes in Rokt if any were collected
+        if (roktAttributes.isNotEmpty()) {
+            Rokt.setAttributes(roktAttributes)
+        }
     }
 
     companion object {
