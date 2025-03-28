@@ -9,7 +9,9 @@ import android.os.Build
 import com.mparticle.commerce.CommerceEvent
 import com.mparticle.identity.MParticleUser
 import com.mparticle.internal.Logger
-import com.mparticle.kits.KitIntegration.*
+import com.mparticle.kits.KitIntegration.CommerceListener
+import com.mparticle.kits.KitIntegration.IdentityListener
+import com.mparticle.kits.KitIntegration.RoktListener
 import com.rokt.roktsdk.Rokt
 import com.rokt.roktsdk.Widget
 import java.lang.ref.WeakReference
@@ -43,7 +45,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
                 try {
                     val info = manager.getPackageInfoForApp(context.packageName, 0)
                     val application = context.applicationContext as Application
-                    Rokt.init(roktTagId, info.versionName , application)
+                    Rokt.init(roktTagId, info.versionName, application)
                 } catch (e: PackageManager.NameNotFoundException) {
                     throwOnKitCreateError(NO_APP_VERSION_FOUND)
                 } catch (e: Exception) {
@@ -118,7 +120,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
 
     override fun execute(
         viewName: String,
-        attributes: MutableMap<String, String>?,
+        attributes: Map<String, String>?,
         onUnload: Runnable?,
         onLoad: Runnable?,
         onShouldHideLoadingIndicator: Runnable?,
@@ -128,38 +130,43 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         filterUser: FilteredMParticleUser?
     ) {
 
-         // Converting the placeholders to a Map<String, WeakReference<Widget>> by filtering and casting each entry
+        // Converting the placeholders to a Map<String, WeakReference<Widget>> by filtering and casting each entry
         val placeholders: Map<String, WeakReference<Widget>>? = placeHolders?.mapNotNull { entry ->
             (entry.value as? WeakReference<Widget>)?.let {
                 entry.key to it
             }
         }?.toMap()
+
         val finalAttributes: HashMap<String, String> = HashMap<String, String>()
         filterUser?.userAttributes?.forEach { (key, value) ->
+
             finalAttributes[key] = value.toString()
         }
-        attributes?.let { filterAttributes(attributes, configuration) }?.let { finalAttributes.putAll(it) }
+        filterAttributes(finalAttributes, configuration).let {
+            finalAttributes.putAll(it)
+        }
         finalAttributes.put("mpid", filterUser?.id.toString())
+        val roktCallback = object : Rokt.RoktCallback {
+            override fun onUnload(reason: Rokt.UnloadReasons) {
+                onUnload?.run()
+            }
+
+            override fun onLoad() {
+                onLoad?.run()
+            }
+
+            override fun onShouldHideLoadingIndicator() {
+                onShouldHideLoadingIndicator?.run()
+            }
+
+            override fun onShouldShowLoadingIndicator() {
+                onShouldShowLoadingIndicator?.run()
+            }
+        }
         Rokt.execute(
             viewName,
             finalAttributes,
-            object : Rokt.RoktCallback {
-                override fun onUnload(reason: Rokt.UnloadReasons) {
-                    onUnload?.run()
-                }
-
-                override fun onLoad() {
-                    onLoad?.run()
-                }
-
-                override fun onShouldHideLoadingIndicator() {
-                    onShouldHideLoadingIndicator?.run()
-                }
-
-                override fun onShouldShowLoadingIndicator() {
-                    onShouldShowLoadingIndicator?.run()
-                }
-            },
+            roktCallback,
             // Pass placeholders and fontTypefaces only if they are not empty or null
             placeholders.takeIf { it?.isNotEmpty() == true },
             fontTypefaces.takeIf { it?.isNotEmpty() == true }
@@ -168,12 +175,12 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
 }
 
 
-private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration): MutableMap<String, String> {
-    val userAttributes : MutableMap<String,String> = HashMap<String,String>()
+private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration): Map<String, String> {
+    val userAttributes: MutableMap<String, String> = HashMap<String, String>()
     for ((key, value) in attributes) {
-        val hashKey=KitUtils.hashForFiltering(key)
+        val hashKey = KitUtils.hashForFiltering(key)
         if (!kitConfiguration.mAttributeFilters.get(hashKey)) {
-            userAttributes[key]=value
+            userAttributes[key] = value
         }
     }
     return userAttributes
