@@ -111,13 +111,10 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         throw IllegalArgumentException(message)
     }
 
-    companion object {
-        const val NAME = "Rokt"
-        const val ROKT_ACCOUNT_ID = "accountId"
-        const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
-        const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
-    }
-
+    /*
+      For more details, visit the official documentation:
+     https://docs.rokt.com/developers/integration-guides/android/how-to/adding-a-placement/
+    */
     override fun execute(
         viewName: String,
         attributes: Map<String, String>?,
@@ -172,19 +169,28 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             fontTypefaces.takeIf { it?.isNotEmpty() == true }
         )
     }
-}
 
-
-private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration): Map<String, String> {
-    val userAttributes: MutableMap<String, String> = HashMap<String, String>()
-    for ((key, value) in attributes) {
-        val hashKey = KitUtils.hashForFiltering(key)
-        if (!kitConfiguration.mAttributeFilters.get(hashKey)) {
-            userAttributes[key] = value
+    private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration): Map<String, String> {
+        val userAttributes: MutableMap<String, String> = HashMap<String, String>()
+        for ((key, value) in attributes) {
+            val hashKey = KitUtils.hashForFiltering(key)
+            if (!kitConfiguration.mAttributeFilters.get(hashKey)) {
+                userAttributes[key] = value
+            }
         }
+        return userAttributes
     }
-    return userAttributes
+
+    companion object {
+        const val NAME = "Rokt"
+        const val ROKT_ACCOUNT_ID = "accountId"
+        const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
+        const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
+    }
 }
+
+
+
 
 fun PackageManager.getPackageInfoForApp(packageName: String, flags: Int = 0): PackageInfo =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
