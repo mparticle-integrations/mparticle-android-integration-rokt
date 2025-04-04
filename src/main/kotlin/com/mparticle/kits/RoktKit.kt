@@ -23,9 +23,12 @@ import java.math.BigDecimal
  *
  * Learn more at our [Developer Docs](https://docs.rokt.com/developers/integration-guides/android)
  */
-class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListener {
+class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListener, Rokt.RoktCallback {
     private var applicationContext: Context? = null
-
+    private var onUnloadCallback: Runnable? = null
+    private var onLoadCallback: Runnable? = null
+    private var onShouldHideLoadingIndicatorCallback: Runnable? = null
+    private var onShouldShowLoadingIndicatorCallback: Runnable? = null
     override fun getName(): String = NAME
 
     override fun getInstance(): RoktKit = this
@@ -35,7 +38,8 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         ctx: Context
     ): List<ReportingMessage> {
         applicationContext = ctx.applicationContext
-        val roktTagId = settings[ROKT_ACCOUNT_ID]
+        //  val roktTagId = settings[ROKT_ACCOUNT_ID]
+        val roktTagId = "2754655826098840951"
         if (KitUtils.isEmpty(roktTagId)) {
             throwOnKitCreateError(NO_ROKT_ACCOUNT_ID)
         }
@@ -122,48 +126,37 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         onLoad: Runnable?,
         onShouldHideLoadingIndicator: Runnable?,
         onShouldShowLoadingIndicator: Runnable?,
-        placeHolders: MutableMap<String, WeakReference<Any>>?,
+        placeHolders: MutableMap<String, WeakReference<com.mparticle.Widget>>?,
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
         filterUser: FilteredMParticleUser?
     ) {
-
         // Converting the placeholders to a Map<String, WeakReference<Widget>> by filtering and casting each entry
         val placeholders: Map<String, WeakReference<Widget>>? = placeHolders?.mapNotNull { entry ->
             (entry.value as? WeakReference<Widget>)?.let {
                 entry.key to it
             }
         }?.toMap()
-
+        onUnloadCallback = onUnload
+        onLoadCallback = onLoad
+        onShouldHideLoadingIndicatorCallback = onShouldHideLoadingIndicator
+        onShouldShowLoadingIndicatorCallback = onShouldShowLoadingIndicator
         val finalAttributes: HashMap<String, String> = HashMap<String, String>()
         filterUser?.userAttributes?.forEach { (key, value) ->
-
             finalAttributes[key] = value.toString()
         }
         filterAttributes(finalAttributes, configuration).let {
             finalAttributes.putAll(it)
         }
-        finalAttributes.put("mpid", filterUser?.id.toString())
-        val roktCallback = object : Rokt.RoktCallback {
-            override fun onUnload(reason: Rokt.UnloadReasons) {
-                onUnload?.run()
-            }
-
-            override fun onLoad() {
-                onLoad?.run()
-            }
-
-            override fun onShouldHideLoadingIndicator() {
-                onShouldHideLoadingIndicator?.run()
-            }
-
-            override fun onShouldShowLoadingIndicator() {
-                onShouldShowLoadingIndicator?.run()
-            }
+        filterUser?.id?.let { mpid ->
+            finalAttributes.put(MP_ID, mpid.toString())
+        } ?: run {
+            Logger.warning("RoktKit: No user ID available for placement")
         }
+
         Rokt.execute(
             viewName,
             finalAttributes,
-            roktCallback,
+            this,
             // Pass placeholders and fontTypefaces only if they are not empty or null
             placeholders.takeIf { it?.isNotEmpty() == true },
             fontTypefaces.takeIf { it?.isNotEmpty() == true }
@@ -184,12 +177,27 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
     companion object {
         const val NAME = "Rokt"
         const val ROKT_ACCOUNT_ID = "accountId"
+        const val MP_ID = "mpid"
         const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
+
+    override fun onLoad() {
+        onLoadCallback?.run()
+    }
+
+    override fun onShouldHideLoadingIndicator() {
+        onShouldHideLoadingIndicatorCallback?.run()
+    }
+
+    override fun onShouldShowLoadingIndicator() {
+        onShouldShowLoadingIndicatorCallback?.run()
+    }
+
+    override fun onUnload(reason: Rokt.UnloadReasons) {
+        onUnloadCallback?.run()
+    }
 }
-
-
 
 
 fun PackageManager.getPackageInfoForApp(packageName: String, flags: Int = 0): PackageInfo =
