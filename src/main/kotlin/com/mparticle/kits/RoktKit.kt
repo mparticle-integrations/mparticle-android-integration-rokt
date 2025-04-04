@@ -148,7 +148,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             finalAttributes.putAll(it)
         }
         filterUser?.id?.let { mpid ->
-            finalAttributes.put(MP_ID, mpid.toString())
+            finalAttributes.put(MPID, mpid.toString())
         } ?: run {
             Logger.warning("RoktKit: No user ID available for placement")
         }
@@ -177,7 +177,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
     companion object {
         const val NAME = "Rokt"
         const val ROKT_ACCOUNT_ID = "accountId"
-        const val MP_ID = "mpid"
+        const val MPID = "mpid"
         const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
