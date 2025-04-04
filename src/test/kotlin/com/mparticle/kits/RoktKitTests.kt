@@ -102,9 +102,9 @@ class RoktKitTests {
 
         // Create test attributes
         val attributes: Map<String, String> = mapOf(
-            "filtered_key" to "filtered_value",
-            "allowed_key" to "allowed_value",
-            "another_allowed_key" to "another_allowed_value"
+            "ShouldFilter" to "shoudl_filter_value",
+            "ShouldFilter_key_2" to "ShouldFilter_value",
+            "allowed_key" to "allowed_value"
         )
 
         // Get the private filterAttributes method using reflection
@@ -118,8 +118,8 @@ class RoktKitTests {
         // Set up the configuration with our test filters
         val jsonObject = JSONObject()
         try {
-            val filteredKey:String =KitUtils.hashForFiltering("filtered_key").toString()
-            val allowedKey:String = KitUtils.hashForFiltering("allowed_key").toString()
+            val filteredKey:String =KitUtils.hashForFiltering("ShouldFilter").toString()
+            val allowedKey:String = KitUtils.hashForFiltering("ShouldFilter_key_2").toString()
             jsonObject.put(filteredKey, 0)
             jsonObject.put(allowedKey, 1)
         } catch (e: Exception) {
@@ -138,9 +138,10 @@ class RoktKitTests {
         // Verify the results
         assertEquals(1, result.size)
 
-        assertFalse(result.containsKey("allowed_key"))
-        assertTrue(result.containsKey("another_allowed_key"))
-        assertEquals("another_allowed_value", result["another_allowed_key"])
+        assertFalse(result.containsKey("ShouldFilter"))
+        assertFalse(result.containsKey("ShouldFilter_key_2"))
+        assertTrue(result.containsKey("allowed_key"))
+        assertEquals("allowed_value", result["allowed_key"])
     }
 
     @Test
@@ -173,6 +174,7 @@ class RoktKitTests {
         }
 
         val json = JSONObject()
+        //here is invalid json key for filtering
         json.put("aaa", jsonObject)
 
 
