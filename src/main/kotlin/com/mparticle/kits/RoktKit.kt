@@ -125,7 +125,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         onLoad: Runnable?,
         onShouldHideLoadingIndicator: Runnable?,
         onShouldShowLoadingIndicator: Runnable?,
-        placeHolders: MutableMap<String, WeakReference<com.mparticle.RoktEmbeddedView>>?,
+        placeHolders: MutableMap<String, WeakReference<com.mparticle.rokt.RoktEmbeddedView>>?,
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
         filterUser: FilteredMParticleUser?
     ) {
