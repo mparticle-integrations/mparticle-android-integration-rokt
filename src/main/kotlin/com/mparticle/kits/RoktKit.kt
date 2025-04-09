@@ -38,7 +38,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         ctx: Context
     ): List<ReportingMessage> {
         applicationContext = ctx.applicationContext
-          val roktTagId = settings[ROKT_ACCOUNT_ID]
+        val roktTagId = settings[ROKT_ACCOUNT_ID]
         if (KitUtils.isEmpty(roktTagId)) {
             throwOnKitCreateError(NO_ROKT_ACCOUNT_ID)
         }
@@ -125,7 +125,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         onLoad: Runnable?,
         onShouldHideLoadingIndicator: Runnable?,
         onShouldShowLoadingIndicator: Runnable?,
-        placeHolders: MutableMap<String, WeakReference<com.mparticle.Widget>>?,
+        placeHolders: MutableMap<String, WeakReference<com.mparticle.RoktEmbeddedView>>?,
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
         filterUser: FilteredMParticleUser?
     ) {
