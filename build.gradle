@@ -65,5 +65,5 @@ dependencies {
 
     testImplementation  files('libs/java-json.jar')
     testImplementation 'com.squareup.assertj:assertj-android:1.2.0'
-    testImplementation ("io.mockk:mockk:1.13.4")
+    testImplementation ("io.mockk:mockk:1.14.0")
 }
