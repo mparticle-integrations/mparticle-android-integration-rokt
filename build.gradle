@@ -60,7 +60,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'androidx.annotation:annotation:1.5.0'
+    implementation 'androidx.annotation:annotation:1.9.1'
     api 'com.rokt:roktsdk:4.8.1'
 
     testImplementation  files('libs/java-json.jar')
