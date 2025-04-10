@@ -39,7 +39,9 @@ android {
         minSdkVersion 21
         consumerProguardFiles 'consumer-proguard.pro'
     }
-
+    lint {
+        disable "NullSafeMutableLiveData"
+    }
     testOptions {
         unitTests.returnDefaultValues = true
         unitTests.all {
@@ -60,8 +62,8 @@ repositories {
 dependencies {
     implementation 'androidx.annotation:annotation:1.5.0'
     api 'com.rokt:roktsdk:4.8.1'
-    testImplementation 'org.json:json:20210307'
 
+    testImplementation  files('libs/java-json.jar')
     testImplementation 'com.squareup.assertj:assertj-android:1.2.0'
     testImplementation ("io.mockk:mockk:1.13.4")
 }

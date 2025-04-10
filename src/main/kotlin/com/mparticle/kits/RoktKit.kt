@@ -140,8 +140,10 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         onShouldHideLoadingIndicatorCallback = onShouldHideLoadingIndicator
         onShouldShowLoadingIndicatorCallback = onShouldShowLoadingIndicator
         val finalAttributes: HashMap<String, String> = HashMap<String, String>()
-        filterUser?.userAttributes?.forEach { (key, value) ->
-            finalAttributes[key] = value.toString()
+        filterUser?.userAttributes?.let { attributes ->
+            for ((key, value) in attributes) {
+                finalAttributes[key] = value.toString()
+            }
         }
         filterAttributes(finalAttributes, configuration).let {
             finalAttributes.putAll(it)
