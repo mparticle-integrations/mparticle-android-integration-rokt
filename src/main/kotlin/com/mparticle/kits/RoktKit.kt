@@ -118,6 +118,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
       For more details, visit the official documentation:
      https://docs.rokt.com/developers/integration-guides/android/how-to/adding-a-placement/
     */
+    @Suppress("UNCHECKED_CAST", "CAST_NEVER_SUCCEEDS")
     override fun execute(
         viewName: String,
         attributes: Map<String, String>?,
@@ -131,17 +132,17 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
     ) {
         // Converting the placeholders to a Map<String, WeakReference<Widget>> by filtering and casting each entry
         val placeholders: Map<String, WeakReference<Widget>>? = placeHolders?.mapNotNull { entry ->
-            (entry.value as? WeakReference<Widget>)?.let {
-                entry.key to it
-            }
+            val weakRef = entry.value
+            val widget = weakRef.get() as? Widget  // Safe cast to Widget
+            widget?.let { entry.key to weakRef as WeakReference<Widget> }  // Only include if it's a Widget
         }?.toMap()
         onUnloadCallback = onUnload
         onLoadCallback = onLoad
         onShouldHideLoadingIndicatorCallback = onShouldHideLoadingIndicator
         onShouldShowLoadingIndicatorCallback = onShouldShowLoadingIndicator
         val finalAttributes: HashMap<String, String> = HashMap<String, String>()
-        filterUser?.userAttributes?.let { attributes ->
-            for ((key, value) in attributes) {
+        filterUser?.userAttributes?.let { userAttrs ->
+            for ((key, value) in userAttrs) {
                 finalAttributes[key] = value.toString()
             }
         }
@@ -183,19 +184,19 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
 
-    override fun onLoad() {
+    override fun onLoad() : Unit{
         onLoadCallback?.run()
     }
 
-    override fun onShouldHideLoadingIndicator() {
+    override fun onShouldHideLoadingIndicator() : Unit {
         onShouldHideLoadingIndicatorCallback?.run()
     }
 
-    override fun onShouldShowLoadingIndicator() {
+    override fun onShouldShowLoadingIndicator() : Unit {
         onShouldShowLoadingIndicatorCallback?.run()
     }
 
-    override fun onUnload(reason: Rokt.UnloadReasons) {
+    override fun onUnload(reason: Rokt.UnloadReasons) : Unit {
         onUnloadCallback?.run()
     }
 }
