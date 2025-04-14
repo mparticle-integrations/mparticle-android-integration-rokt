@@ -184,19 +184,19 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
 
-    override fun onLoad() : Unit{
+    override fun onLoad(): Unit {
         onLoadCallback?.run()
     }
 
-    override fun onShouldHideLoadingIndicator() : Unit {
+    override fun onShouldHideLoadingIndicator(): Unit {
         onShouldHideLoadingIndicatorCallback?.run()
     }
 
-    override fun onShouldShowLoadingIndicator() : Unit {
+    override fun onShouldShowLoadingIndicator(): Unit {
         onShouldShowLoadingIndicatorCallback?.run()
     }
 
-    override fun onUnload(reason: Rokt.UnloadReasons) : Unit {
+    override fun onUnload(reason: Rokt.UnloadReasons): Unit {
         onUnloadCallback?.run()
     }
 }
