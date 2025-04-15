@@ -8,6 +8,7 @@ import android.graphics.Typeface
 import android.os.Build
 import com.mparticle.commerce.CommerceEvent
 import com.mparticle.identity.MParticleUser
+import com.mparticle.internal.Constants
 import com.mparticle.internal.Logger
 import com.mparticle.kits.KitIntegration.CommerceListener
 import com.mparticle.kits.KitIntegration.IdentityListener
@@ -141,8 +142,10 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         onShouldHideLoadingIndicatorCallback = onShouldHideLoadingIndicator
         onShouldShowLoadingIndicatorCallback = onShouldShowLoadingIndicator
         val finalAttributes: HashMap<String, String> = HashMap<String, String>()
+        Logger.error("userAttributes -> " + filterUser?.toString())
         filterUser?.userAttributes?.let { userAttrs ->
             for ((key, value) in userAttrs) {
+                Logger.error("userAttrs -> $key: $value")
                 finalAttributes[key] = value.toString()
             }
         }
@@ -153,6 +156,12 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             finalAttributes.put(MPID, mpid.toString())
         } ?: run {
             Logger.warning("RoktKit: No user ID available for placement")
+        }
+
+
+        val SANDBOX_MODE_ROKT: String = "sandbox"
+        attributes?.get(SANDBOX_MODE_ROKT)?.let { value ->
+            finalAttributes.put(SANDBOX_MODE_ROKT, value)
         }
 
         Rokt.execute(
@@ -184,19 +193,19 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
 
-    override fun onLoad() : Unit{
+    override fun onLoad(): Unit {
         onLoadCallback?.run()
     }
 
-    override fun onShouldHideLoadingIndicator() : Unit {
+    override fun onShouldHideLoadingIndicator(): Unit {
         onShouldHideLoadingIndicatorCallback?.run()
     }
 
-    override fun onShouldShowLoadingIndicator() : Unit {
+    override fun onShouldShowLoadingIndicator(): Unit {
         onShouldShowLoadingIndicatorCallback?.run()
     }
 
-    override fun onUnload(reason: Rokt.UnloadReasons) : Unit {
+    override fun onUnload(reason: Rokt.UnloadReasons): Unit {
         onUnloadCallback?.run()
     }
 }
