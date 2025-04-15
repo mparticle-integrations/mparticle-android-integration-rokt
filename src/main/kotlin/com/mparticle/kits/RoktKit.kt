@@ -142,10 +142,8 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         onShouldHideLoadingIndicatorCallback = onShouldHideLoadingIndicator
         onShouldShowLoadingIndicatorCallback = onShouldShowLoadingIndicator
         val finalAttributes: HashMap<String, String> = HashMap<String, String>()
-        Logger.error("userAttributes -> " + filterUser?.toString())
         filterUser?.userAttributes?.let { userAttrs ->
             for ((key, value) in userAttrs) {
-                Logger.error("userAttrs -> $key: $value")
                 finalAttributes[key] = value.toString()
             }
         }
