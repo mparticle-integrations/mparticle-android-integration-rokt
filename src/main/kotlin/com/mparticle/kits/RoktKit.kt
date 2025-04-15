@@ -12,6 +12,7 @@ import com.mparticle.internal.Logger
 import com.mparticle.kits.KitIntegration.CommerceListener
 import com.mparticle.kits.KitIntegration.IdentityListener
 import com.mparticle.kits.KitIntegration.RoktListener
+import com.mparticle.rokt.RoktEmbeddedView
 import com.rokt.roktsdk.Rokt
 import com.rokt.roktsdk.Widget
 import java.lang.ref.WeakReference
@@ -43,11 +44,11 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             throwOnKitCreateError(NO_ROKT_ACCOUNT_ID)
         }
         applicationContext?.let {
-            val manager = context.packageManager
+            val manager = ctx.packageManager
             if (roktTagId != null) {
                 try {
-                    val info = manager.getPackageInfoForApp(context.packageName, 0)
-                    val application = context.applicationContext as Application
+                    val info = manager.getPackageInfoForApp(ctx.packageName, 0)
+                    val application = ctx.applicationContext as Application
                     Rokt.init(roktTagId, info.versionName, application)
                 } catch (e: PackageManager.NameNotFoundException) {
                     throwOnKitCreateError(NO_APP_VERSION_FOUND)
@@ -132,9 +133,10 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
     ) {
         // Converting the placeholders to a Map<String, WeakReference<Widget>> by filtering and casting each entry
         val placeholders: Map<String, WeakReference<Widget>>? = placeHolders?.mapNotNull { entry ->
-            val weakRef = entry.value
-            val widget = weakRef.get() as? Widget  // Safe cast to Widget
-            widget?.let { entry.key to weakRef as WeakReference<Widget> }  // Only include if it's a Widget
+            val widget = Widget(entry.value.get()?.context as Context)
+            entry.value.get()?.removeAllViews()
+            entry.value.get()?.addView(widget)
+            entry.key to WeakReference(widget)
         }?.toMap()
         onUnloadCallback = onUnload
         onLoadCallback = onLoad
@@ -165,11 +167,11 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         )
     }
 
-    private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration): Map<String, String> {
+    private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration?): Map<String, String> {
         val userAttributes: MutableMap<String, String> = HashMap<String, String>()
         for ((key, value) in attributes) {
             val hashKey = KitUtils.hashForFiltering(key)
-            if (!kitConfiguration.mAttributeFilters.get(hashKey)) {
+            if (kitConfiguration?.mAttributeFilters?.get(hashKey) == false) {
                 userAttributes[key] = value
             }
         }
