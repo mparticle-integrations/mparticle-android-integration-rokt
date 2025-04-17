@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
+import com.mparticle.BuildConfig
 import com.mparticle.commerce.CommerceEvent
 import com.mparticle.identity.MParticleUser
 import com.mparticle.internal.Logger
@@ -48,7 +49,19 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
                 try {
                     val info = manager.getPackageInfoForApp(context.packageName, 0)
                     val application = context.applicationContext as Application
-                    Rokt.init(roktTagId, info.versionName, application)
+                    val mparticleVersion = BuildConfig.VERSION_NAME
+
+                    Rokt.init(
+                        roktTagId = "2754655826098840951",
+                        appVersion = info.versionName,
+                        application = application,
+                        fontPostScriptNames = emptySet(),
+                        fontFilePathMap = emptyMap(),
+                        callback = null,
+                        mParticleSdkVersion = mparticleVersion,
+                        mParticleKitVersion = mparticleVersion
+                    )
+
                 } catch (e: PackageManager.NameNotFoundException) {
                     throwOnKitCreateError(NO_APP_VERSION_FOUND)
                 } catch (e: Exception) {
