@@ -6,12 +6,14 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
+import com.mparticle.MParticle
 import com.mparticle.commerce.CommerceEvent
 import com.mparticle.identity.MParticleUser
 import com.mparticle.internal.Logger
 import com.mparticle.kits.KitIntegration.CommerceListener
 import com.mparticle.kits.KitIntegration.IdentityListener
 import com.mparticle.kits.KitIntegration.RoktListener
+import com.mparticle.rokt.RoktEmbeddedView
 import com.rokt.roktsdk.Rokt
 import com.rokt.roktsdk.Widget
 import java.lang.ref.WeakReference
@@ -25,10 +27,7 @@ import java.math.BigDecimal
  */
 class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListener, Rokt.RoktCallback {
     private var applicationContext: Context? = null
-    private var onUnloadCallback: Runnable? = null
-    private var onLoadCallback: Runnable? = null
-    private var onShouldHideLoadingIndicatorCallback: Runnable? = null
-    private var onShouldShowLoadingIndicatorCallback: Runnable? = null
+    private var mpRoktEventCallback: MParticle.MpRoktEventCallback? = null
     override fun getName(): String = NAME
 
     override fun getInstance(): RoktKit = this
@@ -122,11 +121,8 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
     override fun execute(
         viewName: String,
         attributes: Map<String, String>?,
-        onUnload: Runnable?,
-        onLoad: Runnable?,
-        onShouldHideLoadingIndicator: Runnable?,
-        onShouldShowLoadingIndicator: Runnable?,
-        placeHolders: MutableMap<String, WeakReference<com.mparticle.rokt.RoktEmbeddedView>>?,
+        mpRoktEventCallback: MParticle.MpRoktEventCallback,
+        placeHolders: MutableMap<String, WeakReference<RoktEmbeddedView>>?,
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
         filterUser: FilteredMParticleUser?
     ) {
@@ -136,10 +132,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             val widget = weakRef.get() as? Widget  // Safe cast to Widget
             widget?.let { entry.key to weakRef as WeakReference<Widget> }  // Only include if it's a Widget
         }?.toMap()
-        onUnloadCallback = onUnload
-        onLoadCallback = onLoad
-        onShouldHideLoadingIndicatorCallback = onShouldHideLoadingIndicator
-        onShouldShowLoadingIndicatorCallback = onShouldShowLoadingIndicator
+        this.mpRoktEventCallback = mpRoktEventCallback
         val finalAttributes: HashMap<String, String> = HashMap<String, String>()
         filterUser?.userAttributes?.let { userAttrs ->
             for ((key, value) in userAttrs) {
@@ -185,19 +178,30 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
     }
 
     override fun onLoad() : Unit{
-        onLoadCallback?.run()
+        mpRoktEventCallback?.onLoad()
     }
 
     override fun onShouldHideLoadingIndicator() : Unit {
-        onShouldHideLoadingIndicatorCallback?.run()
+        mpRoktEventCallback?.onShouldHideLoadingIndicator()
     }
 
     override fun onShouldShowLoadingIndicator() : Unit {
-        onShouldShowLoadingIndicatorCallback?.run()
+        mpRoktEventCallback?.onShouldShowLoadingIndicator()
     }
 
     override fun onUnload(reason: Rokt.UnloadReasons) : Unit {
-        onUnloadCallback?.run()
+        mpRoktEventCallback?.onUnload(
+            when (reason) {
+                Rokt.UnloadReasons.NO_OFFERS -> MParticle.UnloadReasons.NO_OFFERS
+                Rokt.UnloadReasons.FINISHED -> MParticle.UnloadReasons.FINISHED
+                Rokt.UnloadReasons.TIMEOUT -> MParticle.UnloadReasons.TIMEOUT
+                Rokt.UnloadReasons.NETWORK_ERROR -> MParticle.UnloadReasons.NETWORK_ERROR
+                Rokt.UnloadReasons.NO_WIDGET -> MParticle.UnloadReasons.NO_WIDGET
+                Rokt.UnloadReasons.INIT_FAILED -> MParticle.UnloadReasons.INIT_FAILED
+                Rokt.UnloadReasons.UNKNOWN_PLACEHOLDER -> MParticle.UnloadReasons.UNKNOWN_PLACEHOLDER
+                Rokt.UnloadReasons.UNKNOWN -> MParticle.UnloadReasons.UNKNOWN
+            }
+        )
     }
 }
 
