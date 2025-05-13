@@ -61,9 +61,24 @@ repositories {
 
 dependencies {
     implementation 'androidx.annotation:annotation:1.5.0'
-    api 'com.rokt:roktsdk:4.8.1'
+    api 'com.rokt:roktsdk:4.9.0'
 
     testImplementation  files('libs/java-json.jar')
     testImplementation 'com.squareup.assertj:assertj-android:1.2.0'
     testImplementation ("io.mockk:mockk:1.13.4")
+}
+
+allprojects {
+    group = 'com.mparticle'
+    repositories {
+        mavenLocal()
+        google()
+        mavenCentral()
+    }
+
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+
+    apply plugin: 'org.jlleitschuh.gradle.ktlint'
 }
