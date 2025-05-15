@@ -151,6 +151,42 @@ class RoktKitTests {
     }
 
     @Test
+    fun test_addIdentityAttributes_When_userIdentities_And_attributes_contains_same_key(){
+        val mockFilterUser = Mockito.mock(FilteredMParticleUser::class.java)
+        val userIdentities = HashMap<IdentityType, String>()
+        userIdentities.put(IdentityType.Email,"TestEmail@gamil.com")
+        Mockito.`when`(mockFilterUser.userIdentities).thenReturn(userIdentities)
+        val attributes: Map<String, String> = mapOf(
+            "key1" to "value1",
+            "key2" to "value2",
+            "key3" to "value3",
+            "email" to "abc@gmail.com"
+        )
+        val method: Method = RoktKit::class.java.getDeclaredMethod(
+            "addIdentityAttributes",
+            Map::class.java,
+            FilteredMParticleUser::class.java
+        )
+        method.isAccessible = true
+        val result = method.invoke(roktKit, attributes, mockFilterUser) as Map<String, String>
+        assertEquals(4, result.size)
+
+        assertTrue(result.containsKey("key1"))
+        assertTrue(result.containsKey("key2"))
+        assertTrue(result.containsKey("key3"))
+        assertTrue(result.containsKey("email"))
+        assertEquals(
+            mapOf(
+                "key1" to "value1",
+                "key2" to "value2",
+                "key3" to "value3",
+                "email" to "TestEmail@gamil.com"
+            ),
+            result
+        )
+    }
+
+    @Test
     fun testAddIdentityAttributes_bothNull() {
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "addIdentityAttributes",
