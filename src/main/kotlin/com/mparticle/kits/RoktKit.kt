@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
 import com.mparticle.MParticle
+import com.mparticle.MParticle.IdentityType
 import com.mparticle.commerce.CommerceEvent
 import com.mparticle.identity.MParticleUser
 import com.mparticle.internal.Logger
@@ -139,14 +140,13 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
                 finalAttributes[key] = value.toString()
             }
         }
-        filterAttributes(finalAttributes, configuration).let {
-            finalAttributes.putAll(it)
-        }
+
         filterUser?.id?.let { mpid ->
             finalAttributes.put(MPID, mpid.toString())
         } ?: run {
             Logger.warning("RoktKit: No user ID available for placement")
         }
+        addIdentityAttributes(finalAttributes, filterUser)
 
         Rokt.execute(
             viewName,
@@ -158,15 +158,49 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         )
     }
 
-    private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration): Map<String, String> {
-        val userAttributes: MutableMap<String, String> = HashMap<String, String>()
-        for ((key, value) in attributes) {
-            val hashKey = KitUtils.hashForFiltering(key)
-            if (!kitConfiguration.mAttributeFilters.get(hashKey)) {
-                userAttributes[key] = value
+
+    private fun addIdentityAttributes(attributes: MutableMap<String, String>?, filterUser: FilteredMParticleUser?): MutableMap<String, String> {
+        val identityAttributes = mutableMapOf<String, String>()
+        if (filterUser != null) {
+            for ((identityNumberKey, identityValue) in filterUser.userIdentities) {
+                val identityType = getStringForIdentity(identityNumberKey)
+                identityAttributes[identityType] = identityValue
             }
         }
-        return userAttributes
+        if (attributes != null) {
+            attributes.putAll(identityAttributes)
+            return attributes
+        } else {
+            return identityAttributes
+        }
+    }
+
+    private fun getStringForIdentity(identityType: IdentityType): String {
+        return when (identityType) {
+            IdentityType.Other -> "other"
+            IdentityType.CustomerId -> "customerid"
+            IdentityType.Facebook -> "facebook"
+            IdentityType.Twitter -> "twitter"
+            IdentityType.Google -> "google"
+            IdentityType.Microsoft -> "microsoft"
+            IdentityType.Yahoo -> "yahoo"
+            IdentityType.Email -> "email"
+            IdentityType.Alias -> "alias"
+            IdentityType.FacebookCustomAudienceId -> "facebookcustomaudienceid"
+            IdentityType.Other2 -> "other2"
+            IdentityType.Other3 -> "other3"
+            IdentityType.Other4 -> "other4"
+            IdentityType.Other5 -> "other5"
+            IdentityType.Other6 -> "other6"
+            IdentityType.Other7 -> "other7"
+            IdentityType.Other8 -> "other8"
+            IdentityType.Other9 -> "other9"
+            IdentityType.Other10 -> "other10"
+            IdentityType.MobileNumber -> "mobilenumber"
+            IdentityType.PhoneNumber2 -> "phonenumber2"
+            IdentityType.PhoneNumber3 -> "phonenumber3"
+            else -> ""
+        }
     }
 
     companion object {
