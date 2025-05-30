@@ -121,8 +121,8 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
     @Suppress("UNCHECKED_CAST", "CAST_NEVER_SUCCEEDS")
     override fun execute(
         viewName: String,
-        attributes: Map<String, String>?,
-        mpRoktEventCallback: MParticle.MpRoktEventCallback,
+        attributes: Map<String, String>,
+        mpRoktEventCallback: MParticle.MpRoktEventCallback?,
         placeHolders: MutableMap<String, WeakReference<RoktEmbeddedView>>?,
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
         filterUser: FilteredMParticleUser?
