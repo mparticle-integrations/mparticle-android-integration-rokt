@@ -39,8 +39,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         ctx: Context
     ): List<ReportingMessage> {
         applicationContext = ctx.applicationContext
-    //    val roktTagId = settings[ROKT_ACCOUNT_ID]
-        val roktTagId = "2754655826098840951"
+        val roktTagId = settings[ROKT_ACCOUNT_ID]
         if (KitUtils.isEmpty(roktTagId)) {
             throwOnKitCreateError(NO_ROKT_ACCOUNT_ID)
         }
