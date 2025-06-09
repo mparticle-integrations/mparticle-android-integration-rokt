@@ -7,13 +7,18 @@ import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
 import com.mparticle.BuildConfig
+import com.mparticle.MParticle
+import com.mparticle.MParticle.IdentityType
 import com.mparticle.commerce.CommerceEvent
 import com.mparticle.identity.MParticleUser
+import com.mparticle.internal.Constants
 import com.mparticle.internal.Logger
 import com.mparticle.kits.KitIntegration.CommerceListener
 import com.mparticle.kits.KitIntegration.IdentityListener
 import com.mparticle.kits.KitIntegration.RoktListener
+import com.mparticle.rokt.RoktEmbeddedView
 import com.rokt.roktsdk.Rokt
+import com.rokt.roktsdk.RoktWidgetDimensionCallBack
 import com.rokt.roktsdk.Widget
 import java.lang.ref.WeakReference
 import java.math.BigDecimal
@@ -26,10 +31,7 @@ import java.math.BigDecimal
  */
 class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListener, Rokt.RoktCallback {
     private var applicationContext: Context? = null
-    private var onUnloadCallback: Runnable? = null
-    private var onLoadCallback: Runnable? = null
-    private var onShouldHideLoadingIndicatorCallback: Runnable? = null
-    private var onShouldShowLoadingIndicatorCallback: Runnable? = null
+    private var mpRoktEventCallback: MParticle.MpRoktEventCallback? = null
     override fun getName(): String = NAME
 
     override fun getInstance(): RoktKit = this
@@ -134,38 +136,54 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
     @Suppress("UNCHECKED_CAST", "CAST_NEVER_SUCCEEDS")
     override fun execute(
         viewName: String,
-        attributes: Map<String, String>?,
-        onUnload: Runnable?,
-        onLoad: Runnable?,
-        onShouldHideLoadingIndicator: Runnable?,
-        onShouldShowLoadingIndicator: Runnable?,
-        placeHolders: MutableMap<String, WeakReference<com.mparticle.rokt.RoktEmbeddedView>>?,
+        attributes: Map<String, String>,
+        mpRoktEventCallback: MParticle.MpRoktEventCallback?,
+        placeHolders: MutableMap<String, WeakReference<RoktEmbeddedView>>?,
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
         filterUser: FilteredMParticleUser?
     ) {
-        // Converting the placeholders to a Map<String, WeakReference<Widget>> by filtering and casting each entry
         val placeholders: Map<String, WeakReference<Widget>>? = placeHolders?.mapNotNull { entry ->
-            val weakRef = entry.value
-            val widget = weakRef.get() as? Widget  // Safe cast to Widget
-            widget?.let { entry.key to weakRef as WeakReference<Widget> }  // Only include if it's a Widget
+            val widget = Widget(entry.value.get()?.context as Context)
+            entry.value.get()?.removeAllViews()
+            entry.value.get()?.addView(widget)
+            entry.value.get()?.dimensionCallBack?.let {
+                widget.registerDimensionListener(object: RoktWidgetDimensionCallBack {
+                    override fun onHeightChanged(height: Int) {
+                        it.onHeightChanged(height)
+                    }
+
+                    override fun onMarginChanged(
+                        start: Int,
+                        top: Int,
+                        end: Int,
+                        bottom: Int
+                    ) {
+                        it.onMarginChanged(start, top, end, bottom)
+                    }
+
+                })
+            }
+            entry.key to WeakReference(widget)
         }?.toMap()
-        onUnloadCallback = onUnload
-        onLoadCallback = onLoad
-        onShouldHideLoadingIndicatorCallback = onShouldHideLoadingIndicator
-        onShouldShowLoadingIndicatorCallback = onShouldShowLoadingIndicator
+
+        this.mpRoktEventCallback = mpRoktEventCallback
         val finalAttributes: HashMap<String, String> = HashMap<String, String>()
         filterUser?.userAttributes?.let { userAttrs ->
             for ((key, value) in userAttrs) {
                 finalAttributes[key] = value.toString()
             }
         }
-        filterAttributes(finalAttributes, configuration).let {
-            finalAttributes.putAll(it)
-        }
-        filterUser?.id?.let { mpid ->
-            finalAttributes.put(MPID, mpid.toString())
-        } ?: run {
-            Logger.warning("RoktKit: No user ID available for placement")
+
+        filterUser?.id?.toString()?.let { mpid ->
+            finalAttributes[MPID] = mpid
+        } ?: Logger.warning("RoktKit: No user ID available for placement")
+
+        addIdentityAttributes(finalAttributes, filterUser)
+
+
+        val SANDBOX_MODE_ROKT: String = "sandbox"
+        attributes?.get(SANDBOX_MODE_ROKT)?.let { value ->
+            finalAttributes.put(SANDBOX_MODE_ROKT, value)
         }
 
         Rokt.execute(
@@ -178,15 +196,49 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         )
     }
 
-    private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration): Map<String, String> {
-        val userAttributes: MutableMap<String, String> = HashMap<String, String>()
-        for ((key, value) in attributes) {
-            val hashKey = KitUtils.hashForFiltering(key)
-            if (!kitConfiguration.mAttributeFilters.get(hashKey)) {
-                userAttributes[key] = value
+
+    private fun addIdentityAttributes(attributes: MutableMap<String, String>?, filterUser: FilteredMParticleUser?): MutableMap<String, String> {
+        val identityAttributes = mutableMapOf<String, String>()
+        if (filterUser != null) {
+            for ((identityNumberKey, identityValue) in filterUser.userIdentities) {
+                val identityType = getStringForIdentity(identityNumberKey)
+                identityAttributes[identityType] = identityValue
             }
         }
-        return userAttributes
+        if (attributes != null) {
+            attributes.putAll(identityAttributes)
+            return attributes
+        } else {
+            return identityAttributes
+        }
+    }
+
+    private fun getStringForIdentity(identityType: IdentityType): String {
+        return when (identityType) {
+            IdentityType.Other -> "other"
+            IdentityType.CustomerId -> "customerid"
+            IdentityType.Facebook -> "facebook"
+            IdentityType.Twitter -> "twitter"
+            IdentityType.Google -> "google"
+            IdentityType.Microsoft -> "microsoft"
+            IdentityType.Yahoo -> "yahoo"
+            IdentityType.Email -> "email"
+            IdentityType.Alias -> "alias"
+            IdentityType.FacebookCustomAudienceId -> "facebookcustomaudienceid"
+            IdentityType.Other2 -> "other2"
+            IdentityType.Other3 -> "other3"
+            IdentityType.Other4 -> "other4"
+            IdentityType.Other5 -> "other5"
+            IdentityType.Other6 -> "other6"
+            IdentityType.Other7 -> "other7"
+            IdentityType.Other8 -> "other8"
+            IdentityType.Other9 -> "other9"
+            IdentityType.Other10 -> "other10"
+            IdentityType.MobileNumber -> "mobilenumber"
+            IdentityType.PhoneNumber2 -> "phonenumber2"
+            IdentityType.PhoneNumber3 -> "phonenumber3"
+            else -> ""
+        }
     }
 
     companion object {
@@ -197,20 +249,32 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
 
+
     override fun onLoad() : Unit{
-        onLoadCallback?.run()
+        mpRoktEventCallback?.onLoad()
     }
 
     override fun onShouldHideLoadingIndicator() : Unit {
-        onShouldHideLoadingIndicatorCallback?.run()
+        mpRoktEventCallback?.onShouldHideLoadingIndicator()
     }
 
     override fun onShouldShowLoadingIndicator() : Unit {
-        onShouldShowLoadingIndicatorCallback?.run()
+        mpRoktEventCallback?.onShouldShowLoadingIndicator()
     }
 
     override fun onUnload(reason: Rokt.UnloadReasons) : Unit {
-        onUnloadCallback?.run()
+        mpRoktEventCallback?.onUnload(
+            when (reason) {
+                Rokt.UnloadReasons.NO_OFFERS -> MParticle.UnloadReasons.NO_OFFERS
+                Rokt.UnloadReasons.FINISHED -> MParticle.UnloadReasons.FINISHED
+                Rokt.UnloadReasons.TIMEOUT -> MParticle.UnloadReasons.TIMEOUT
+                Rokt.UnloadReasons.NETWORK_ERROR -> MParticle.UnloadReasons.NETWORK_ERROR
+                Rokt.UnloadReasons.NO_WIDGET -> MParticle.UnloadReasons.NO_WIDGET
+                Rokt.UnloadReasons.INIT_FAILED -> MParticle.UnloadReasons.INIT_FAILED
+                Rokt.UnloadReasons.UNKNOWN_PLACEHOLDER -> MParticle.UnloadReasons.UNKNOWN_PLACEHOLDER
+                Rokt.UnloadReasons.UNKNOWN -> MParticle.UnloadReasons.UNKNOWN
+            }
+        )
     }
 }
 
