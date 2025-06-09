@@ -10,6 +10,7 @@ import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
 import com.mparticle.commerce.CommerceEvent
 import com.mparticle.identity.MParticleUser
+import com.mparticle.internal.Constants
 import com.mparticle.internal.Logger
 import com.mparticle.kits.KitIntegration.CommerceListener
 import com.mparticle.kits.KitIntegration.IdentityListener
@@ -166,6 +167,12 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
 
         addIdentityAttributes(finalAttributes, filterUser)
 
+
+        val SANDBOX_MODE_ROKT: String = "sandbox"
+        attributes?.get(SANDBOX_MODE_ROKT)?.let { value ->
+            finalAttributes.put(SANDBOX_MODE_ROKT, value)
+        }
+
         Rokt.execute(
             viewName,
             finalAttributes,
@@ -228,6 +235,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
+
 
     override fun onLoad() : Unit{
         mpRoktEventCallback?.onLoad()
