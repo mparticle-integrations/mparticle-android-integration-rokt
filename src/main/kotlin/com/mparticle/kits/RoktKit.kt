@@ -16,6 +16,7 @@ import com.mparticle.kits.KitIntegration.IdentityListener
 import com.mparticle.kits.KitIntegration.RoktListener
 import com.mparticle.rokt.RoktEmbeddedView
 import com.rokt.roktsdk.Rokt
+import com.rokt.roktsdk.RoktWidgetDimensionCallBack
 import com.rokt.roktsdk.Widget
 import java.lang.ref.WeakReference
 import java.math.BigDecimal
@@ -38,7 +39,8 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         ctx: Context
     ): List<ReportingMessage> {
         applicationContext = ctx.applicationContext
-        val roktTagId = settings[ROKT_ACCOUNT_ID]
+    //    val roktTagId = settings[ROKT_ACCOUNT_ID]
+        val roktTagId = "2754655826098840951"
         if (KitUtils.isEmpty(roktTagId)) {
             throwOnKitCreateError(NO_ROKT_ACCOUNT_ID)
         }
@@ -127,12 +129,30 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
         filterUser: FilteredMParticleUser?
     ) {
-        // Converting the placeholders to a Map<String, WeakReference<Widget>> by filtering and casting each entry
         val placeholders: Map<String, WeakReference<Widget>>? = placeHolders?.mapNotNull { entry ->
-            val weakRef = entry.value
-            val widget = weakRef.get() as? Widget  // Safe cast to Widget
-            widget?.let { entry.key to weakRef as WeakReference<Widget> }  // Only include if it's a Widget
+            val widget = Widget(entry.value.get()?.context as Context)
+            entry.value.get()?.removeAllViews()
+            entry.value.get()?.addView(widget)
+            entry.value.get()?.dimensionCallBack?.let {
+                widget.registerDimensionListener(object: RoktWidgetDimensionCallBack {
+                    override fun onHeightChanged(height: Int) {
+                        it.onHeightChanged(height)
+                    }
+
+                    override fun onMarginChanged(
+                        start: Int,
+                        top: Int,
+                        end: Int,
+                        bottom: Int
+                    ) {
+                        it.onMarginChanged(start, top, end, bottom)
+                    }
+
+                })
+            }
+            entry.key to WeakReference(widget)
         }?.toMap()
+
         this.mpRoktEventCallback = mpRoktEventCallback
         val finalAttributes: HashMap<String, String> = HashMap<String, String>()
         filterUser?.userAttributes?.let { userAttrs ->
@@ -141,11 +161,10 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             }
         }
 
-        filterUser?.id?.let { mpid ->
-            finalAttributes.put(MPID, mpid.toString())
-        } ?: run {
-            Logger.warning("RoktKit: No user ID available for placement")
-        }
+        filterUser?.id?.toString()?.let { mpid ->
+            finalAttributes[MPID] = mpid
+        } ?: Logger.warning("RoktKit: No user ID available for placement")
+
         addIdentityAttributes(finalAttributes, filterUser)
 
         Rokt.execute(
