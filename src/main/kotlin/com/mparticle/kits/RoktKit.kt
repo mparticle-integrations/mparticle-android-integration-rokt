@@ -11,7 +11,6 @@ import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
 import com.mparticle.commerce.CommerceEvent
 import com.mparticle.identity.MParticleUser
-import com.mparticle.internal.Constants
 import com.mparticle.internal.Logger
 import com.mparticle.kits.KitIntegration.CommerceListener
 import com.mparticle.kits.KitIntegration.IdentityListener
