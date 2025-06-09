@@ -54,7 +54,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
                     val mparticleVersion = BuildConfig.VERSION_NAME
 
                     Rokt.init(
-                        roktTagId = "2754655826098840951",
+                        roktTagId = roktTagId,
                         appVersion = info.versionName,
                         application = application,
                         fontPostScriptNames = emptySet(),
