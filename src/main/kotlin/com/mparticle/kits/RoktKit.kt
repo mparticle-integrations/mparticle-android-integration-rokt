@@ -142,7 +142,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         placeHolders: MutableMap<String, WeakReference<RoktEmbeddedView>>?,
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
         filterUser: FilteredMParticleUser?,
-        config: RoktConfig?
+        mpRoktConfig: RoktConfig?
     ) {
         val placeholders: Map<String, WeakReference<Widget>>? = placeHolders?.mapNotNull { entry ->
             val widget = Widget(entry.value.get()?.context as Context)
@@ -187,7 +187,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         attributes?.get(SANDBOX_MODE_ROKT)?.let { value ->
             finalAttributes.put(SANDBOX_MODE_ROKT, value)
         }
-        val roktConfig = config?.let { mapToRoktConfig(it) }
+        val roktConfig = mpRoktConfig?.let { mapToRoktConfig(it) }
         Rokt.execute(
             viewName,
             finalAttributes,
