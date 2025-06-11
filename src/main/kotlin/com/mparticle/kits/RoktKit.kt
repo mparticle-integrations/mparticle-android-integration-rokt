@@ -199,6 +199,10 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         )
     }
 
+    override fun purchaseFinalized(placementId: String, catalogItemId: String, status: Boolean) {
+        Rokt.purchaseFinalized(placementId, catalogItemId, status)
+    }
+
     public fun mapToRoktConfig(config: RoktConfig): com.rokt.roktsdk.RoktConfig {
         val colorMode = when (config.colorMode) {
             RoktConfig.ColorMode.LIGHT -> com.rokt.roktsdk.RoktConfig.ColorMode.LIGHT
