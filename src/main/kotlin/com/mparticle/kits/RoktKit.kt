@@ -17,7 +17,9 @@ import com.mparticle.internal.Logger
 import com.mparticle.kits.KitIntegration.CommerceListener
 import com.mparticle.kits.KitIntegration.IdentityListener
 import com.mparticle.kits.KitIntegration.RoktListener
+import com.mparticle.rokt.RoktConfig
 import com.mparticle.rokt.RoktEmbeddedView
+import com.rokt.roktsdk.CacheConfig
 import com.rokt.roktsdk.Rokt
 import com.rokt.roktsdk.Rokt.SdkFrameworkType.*
 import com.rokt.roktsdk.RoktWidgetDimensionCallBack
@@ -141,7 +143,8 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         mpRoktEventCallback: MParticle.MpRoktEventCallback?,
         placeHolders: MutableMap<String, WeakReference<RoktEmbeddedView>>?,
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
-        filterUser: FilteredMParticleUser?
+        filterUser: FilteredMParticleUser?,
+        mpRoktConfig: RoktConfig?
     ) {
         val placeholders: Map<String, WeakReference<Widget>>? = placeHolders?.mapNotNull { entry ->
             val widget = Widget(entry.value.get()?.context as Context)
@@ -186,14 +189,15 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         attributes?.get(SANDBOX_MODE_ROKT)?.let { value ->
             finalAttributes.put(SANDBOX_MODE_ROKT, value)
         }
-
+        val roktConfig = mpRoktConfig?.let { mapToRoktConfig(it) }
         Rokt.execute(
             viewName,
             finalAttributes,
             this,
             // Pass placeholders and fontTypefaces only if they are not empty or null
             placeholders.takeIf { it?.isNotEmpty() == true },
-            fontTypefaces.takeIf { it?.isNotEmpty() == true }
+            fontTypefaces.takeIf { it?.isNotEmpty() == true },
+            roktConfig
         )
     }
 
@@ -205,6 +209,33 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             else -> Android
         }
         Rokt.setFrameworkType(sdkFrameworkType)
+    }
+
+    public fun mapToRoktConfig(config: RoktConfig): com.rokt.roktsdk.RoktConfig {
+        val colorMode = when (config.colorMode) {
+            RoktConfig.ColorMode.LIGHT -> com.rokt.roktsdk.RoktConfig.ColorMode.LIGHT
+            RoktConfig.ColorMode.DARK -> com.rokt.roktsdk.RoktConfig.ColorMode.DARK
+            RoktConfig.ColorMode.SYSTEM -> com.rokt.roktsdk.RoktConfig.ColorMode.SYSTEM
+            else -> com.rokt.roktsdk.RoktConfig.ColorMode.SYSTEM
+        }
+
+        val cacheConfig = config.cacheConfig?.cacheDurationInSeconds?.let {
+            CacheConfig(
+                cacheDurationInSeconds = it,
+                cacheAttributes = config.cacheConfig?.cacheAttributes
+            )
+        }
+
+        val edgeToEdgeDisplay = config.edgeToEdgeDisplay
+
+        val builder = com.rokt.roktsdk.RoktConfig.Builder()
+            .colorMode(colorMode)
+            .edgeToEdgeDisplay(edgeToEdgeDisplay)
+
+        cacheConfig?.let {
+            builder.cacheConfig(it)
+        }
+        return builder.build()
     }
 
     private fun addIdentityAttributes(attributes: MutableMap<String, String>?, filterUser: FilteredMParticleUser?): MutableMap<String, String> {
