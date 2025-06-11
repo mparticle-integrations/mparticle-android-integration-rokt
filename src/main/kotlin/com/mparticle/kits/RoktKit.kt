@@ -195,11 +195,11 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             // Pass placeholders and fontTypefaces only if they are not empty or null
             placeholders.takeIf { it?.isNotEmpty() == true },
             fontTypefaces.takeIf { it?.isNotEmpty() == true },
-            roktConfig.takeIf { it != null }
+            roktConfig
         )
     }
 
-    fun mapToRoktConfig(config: RoktConfig): com.rokt.roktsdk.RoktConfig {
+    public fun mapToRoktConfig(config: RoktConfig): com.rokt.roktsdk.RoktConfig {
         val colorMode = when (config.colorMode) {
             RoktConfig.ColorMode.LIGHT -> com.rokt.roktsdk.RoktConfig.ColorMode.LIGHT
             RoktConfig.ColorMode.DARK -> com.rokt.roktsdk.RoktConfig.ColorMode.DARK
@@ -219,8 +219,9 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         val builder = com.rokt.roktsdk.RoktConfig.Builder()
             .colorMode(colorMode)
             .edgeToEdgeDisplay(edgeToEdgeDisplay)
-        if (cacheConfig != null) {
-            builder.cacheConfig(cacheConfig)
+
+        cacheConfig?.let {
+            builder.cacheConfig(it)
         }
         return builder.build()
     }
