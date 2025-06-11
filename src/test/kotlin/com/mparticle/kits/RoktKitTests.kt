@@ -10,15 +10,15 @@ import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
 import com.mparticle.MParticleOptions
 import com.mparticle.MParticleOptions.DataplanOptions
+import com.mparticle.WrapperSdk
+import com.mparticle.WrapperSdkVersion
 import com.mparticle.identity.IdentityApi
 import com.mparticle.internal.CoreCallbacks
 import com.mparticle.internal.CoreCallbacks.KitListener
-import com.mparticle.kits.mocks.MockKitConfiguration
+import com.rokt.roktsdk.Rokt
 import io.mockk.*
 import org.json.JSONArray
-import org.json.JSONObject
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -45,14 +45,14 @@ class RoktKitTests {
         every { context.applicationContext } returns context
         roktKit = RoktKit()
         kitManager = TestKitManager()
-        MParticle.setInstance(Mockito.mock(MParticle::class.java))
+        MParticle.setInstance(mock(MParticle::class.java))
         Mockito.`when`(MParticle.getInstance()?.Identity()).thenReturn(
-            Mockito.mock(
+            mock(
                 IdentityApi::class.java
             )
         )
         val kitManager = KitManagerImpl(
-            Mockito.mock(
+            mock(
                 Context::class.java
             ), null, emptyCoreCallbacks, mock(MParticleOptions::class.java)
         )
@@ -100,7 +100,7 @@ class RoktKitTests {
 
     @Test
     fun test_addIdentityAttributes_When_userIdentities_IS_Null(){
-        val mockFilterUser = Mockito.mock(FilteredMParticleUser::class.java)
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
         val userIdentities = HashMap<IdentityType, String>()
         Mockito.`when`(mockFilterUser.userIdentities).thenReturn(userIdentities)
         val attributes: Map<String, String> = mapOf(
@@ -120,12 +120,11 @@ class RoktKitTests {
         assertTrue(result.containsKey("key1"))
         assertTrue(result.containsKey("key2"))
         assertTrue(result.containsKey("key3"))
-
     }
 
     @Test
     fun test_addIdentityAttributes_When_userIdentities_Contain_value(){
-        val mockFilterUser = Mockito.mock(FilteredMParticleUser::class.java)
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
         val userIdentities = HashMap<IdentityType, String>()
         userIdentities.put(IdentityType.Email,"TestEmail@gamil.com")
         Mockito.`when`(mockFilterUser.userIdentities).thenReturn(userIdentities)
@@ -152,7 +151,7 @@ class RoktKitTests {
 
     @Test
     fun test_addIdentityAttributes_When_userIdentities_And_attributes_contains_same_key(){
-        val mockFilterUser = Mockito.mock(FilteredMParticleUser::class.java)
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
         val userIdentities = HashMap<IdentityType, String>()
         userIdentities.put(IdentityType.Email,"TestEmail@gamil.com")
         Mockito.`when`(mockFilterUser.userIdentities).thenReturn(userIdentities)
@@ -200,7 +199,7 @@ class RoktKitTests {
 
     @Test
     fun testAddIdentityAttributes_nullAttributes_validUser() {
-        val mockFilterUser = Mockito.mock(FilteredMParticleUser::class.java)
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
         val userIdentities = HashMap<IdentityType, String>()
         userIdentities.put(IdentityType.Email,"TestEmail@gamil.com")
         Mockito.`when`(mockFilterUser.userIdentities).thenReturn(userIdentities)
@@ -235,7 +234,27 @@ class RoktKitTests {
         assertTrue(result.containsKey("key3"))
     }
 
+    @Test
+    fun testSetSdkWrapper_correctlySetsRoktFramework() {
+        mockkObject(Rokt)
+        every { Rokt.setFrameworkType(any()) } just runs
 
+        roktKit.setWrapperSdkVersion(WrapperSdkVersion(WrapperSdk.WrapperFlutter, "1.0.0"))
+        roktKit.setWrapperSdkVersion(WrapperSdkVersion(WrapperSdk.WrapperSdkReactNative, "1.0.0"))
+        roktKit.setWrapperSdkVersion(WrapperSdkVersion(WrapperSdk.WrapperSdkCordova, "1.0.0"))
+        roktKit.setWrapperSdkVersion(WrapperSdkVersion(WrapperSdk.WrapperNone, "1.0.0"))
+        roktKit.setWrapperSdkVersion(WrapperSdkVersion(WrapperSdk.WrapperXamarin, "1.0.0"))
+
+        verifyOrder {
+            Rokt.setFrameworkType(Rokt.SdkFrameworkType.Flutter)
+            Rokt.setFrameworkType(Rokt.SdkFrameworkType.ReactNative)
+            Rokt.setFrameworkType(Rokt.SdkFrameworkType.Cordova)
+            Rokt.setFrameworkType(Rokt.SdkFrameworkType.Android)
+            Rokt.setFrameworkType(Rokt.SdkFrameworkType.Android)
+        }
+
+        unmockkObject(Rokt)
+    }
 
     internal inner class TestCoreCallbacks : CoreCallbacks {
         override fun isBackgrounded(): Boolean = false
