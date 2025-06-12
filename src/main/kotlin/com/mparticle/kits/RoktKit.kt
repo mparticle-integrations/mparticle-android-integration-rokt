@@ -199,7 +199,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         )
     }
 
-    public fun mapToRoktConfig(config: RoktConfig): com.rokt.roktsdk.RoktConfig {
+    private fun mapToRoktConfig(config: RoktConfig): com.rokt.roktsdk.RoktConfig {
         val colorMode = when (config.colorMode) {
             RoktConfig.ColorMode.LIGHT -> com.rokt.roktsdk.RoktConfig.ColorMode.LIGHT
             RoktConfig.ColorMode.DARK -> com.rokt.roktsdk.RoktConfig.ColorMode.DARK
