@@ -9,6 +9,8 @@ import android.os.Build
 import com.mparticle.BuildConfig
 import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
+import com.mparticle.WrapperSdk
+import com.mparticle.WrapperSdkVersion
 import com.mparticle.commerce.CommerceEvent
 import com.mparticle.identity.MParticleUser
 import com.mparticle.internal.Logger
@@ -19,6 +21,7 @@ import com.mparticle.rokt.RoktConfig
 import com.mparticle.rokt.RoktEmbeddedView
 import com.rokt.roktsdk.CacheConfig
 import com.rokt.roktsdk.Rokt
+import com.rokt.roktsdk.Rokt.SdkFrameworkType.*
 import com.rokt.roktsdk.RoktWidgetDimensionCallBack
 import com.rokt.roktsdk.Widget
 import java.lang.ref.WeakReference
@@ -134,7 +137,6 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
       For more details, visit the official documentation:
      https://docs.rokt.com/developers/integration-guides/android/how-to/adding-a-placement/
     */
-    @Suppress("UNCHECKED_CAST", "CAST_NEVER_SUCCEEDS")
     override fun execute(
         viewName: String,
         attributes: Map<String, String>,
@@ -197,6 +199,16 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             fontTypefaces.takeIf { it?.isNotEmpty() == true },
             roktConfig
         )
+    }
+
+    override fun setWrapperSdkVersion(wrapperSdkVersion: WrapperSdkVersion) {
+        val sdkFrameworkType = when (wrapperSdkVersion.sdk) {
+            WrapperSdk.WrapperFlutter -> Flutter
+            WrapperSdk.WrapperSdkReactNative -> ReactNative
+            WrapperSdk.WrapperSdkCordova -> Cordova
+            else -> Android
+        }
+        Rokt.setFrameworkType(sdkFrameworkType)
     }
 
     override fun purchaseFinalized(placementId: String, catalogItemId: String, status: Boolean) {
