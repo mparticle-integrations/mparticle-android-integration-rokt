@@ -9,6 +9,8 @@ import android.os.Build
 import com.mparticle.BuildConfig
 import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
+import com.mparticle.MpRoktEventCallback
+import com.mparticle.UnloadReasons
 import com.mparticle.WrapperSdk
 import com.mparticle.WrapperSdkVersion
 import com.mparticle.commerce.CommerceEvent
@@ -35,7 +37,7 @@ import java.math.BigDecimal
  */
 class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListener, Rokt.RoktCallback {
     private var applicationContext: Context? = null
-    private var mpRoktEventCallback: MParticle.MpRoktEventCallback? = null
+    private var mpRoktEventCallback: MpRoktEventCallback? = null
     override fun getName(): String = NAME
 
     override fun getInstance(): RoktKit = this
@@ -140,7 +142,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
     override fun execute(
         viewName: String,
         attributes: Map<String, String>,
-        mpRoktEventCallback: MParticle.MpRoktEventCallback?,
+        mpRoktEventCallback: MpRoktEventCallback?,
         placeHolders: MutableMap<String, WeakReference<RoktEmbeddedView>>?,
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
         filterUser: FilteredMParticleUser?,
@@ -310,14 +312,14 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
     override fun onUnload(reason: Rokt.UnloadReasons) : Unit {
         mpRoktEventCallback?.onUnload(
             when (reason) {
-                Rokt.UnloadReasons.NO_OFFERS -> MParticle.UnloadReasons.NO_OFFERS
-                Rokt.UnloadReasons.FINISHED -> MParticle.UnloadReasons.FINISHED
-                Rokt.UnloadReasons.TIMEOUT -> MParticle.UnloadReasons.TIMEOUT
-                Rokt.UnloadReasons.NETWORK_ERROR -> MParticle.UnloadReasons.NETWORK_ERROR
-                Rokt.UnloadReasons.NO_WIDGET -> MParticle.UnloadReasons.NO_WIDGET
-                Rokt.UnloadReasons.INIT_FAILED -> MParticle.UnloadReasons.INIT_FAILED
-                Rokt.UnloadReasons.UNKNOWN_PLACEHOLDER -> MParticle.UnloadReasons.UNKNOWN_PLACEHOLDER
-                Rokt.UnloadReasons.UNKNOWN -> MParticle.UnloadReasons.UNKNOWN
+                Rokt.UnloadReasons.NO_OFFERS -> UnloadReasons.NO_OFFERS
+                Rokt.UnloadReasons.FINISHED -> UnloadReasons.FINISHED
+                Rokt.UnloadReasons.TIMEOUT -> UnloadReasons.TIMEOUT
+                Rokt.UnloadReasons.NETWORK_ERROR -> UnloadReasons.NETWORK_ERROR
+                Rokt.UnloadReasons.NO_WIDGET -> UnloadReasons.NO_WIDGET
+                Rokt.UnloadReasons.INIT_FAILED -> UnloadReasons.INIT_FAILED
+                Rokt.UnloadReasons.UNKNOWN_PLACEHOLDER -> UnloadReasons.UNKNOWN_PLACEHOLDER
+                Rokt.UnloadReasons.UNKNOWN -> UnloadReasons.UNKNOWN
             }
         )
     }
