@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
 import com.mparticle.BuildConfig
-import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
 import com.mparticle.MpRoktEventCallback
 import com.mparticle.UnloadReasons
@@ -23,12 +22,17 @@ import com.mparticle.rokt.RoktConfig
 import com.mparticle.rokt.RoktEmbeddedView
 import com.rokt.roktsdk.CacheConfig
 import com.rokt.roktsdk.Rokt
-import com.rokt.roktsdk.Rokt.SdkFrameworkType.*
+import com.rokt.roktsdk.Rokt.SdkFrameworkType.Android
+import com.rokt.roktsdk.Rokt.SdkFrameworkType.Cordova
+import com.rokt.roktsdk.Rokt.SdkFrameworkType.Flutter
+import com.rokt.roktsdk.Rokt.SdkFrameworkType.ReactNative
+import com.rokt.roktsdk.RoktEvent
 import com.rokt.roktsdk.RoktWidgetDimensionCallBack
 import com.rokt.roktsdk.Widget
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.lang.ref.WeakReference
 import java.math.BigDecimal
-
 
 /**
  * MParticle embedded implementation of the Rokt Library.
@@ -203,6 +207,45 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         )
     }
 
+    override fun events(identifier: String): Flow<com.mparticle.RoktEvent> {
+        return Rokt.events(identifier)
+            .map { event ->
+                when (event) {
+                    is RoktEvent.HideLoadingIndicator -> com.mparticle.RoktEvent.HideLoadingIndicator
+                    is RoktEvent.ShowLoadingIndicator -> com.mparticle.RoktEvent.ShowLoadingIndicator
+                    is RoktEvent.FirstPositiveEngagement -> com.mparticle.RoktEvent.FirstPositiveEngagement(
+                        event.id
+                    )
+                    is RoktEvent.PositiveEngagement -> com.mparticle.RoktEvent.PositiveEngagement(
+                        event.id
+                    )
+                    is RoktEvent.OfferEngagement -> com.mparticle.RoktEvent.OfferEngagement(event.id)
+                    is RoktEvent.OpenUrl -> com.mparticle.RoktEvent.OpenUrl(event.id, event.url)
+                    is RoktEvent.PlacementClosed -> com.mparticle.RoktEvent.PlacementClosed(event.id)
+                    is RoktEvent.PlacementCompleted -> com.mparticle.RoktEvent.PlacementCompleted(
+                        event.id
+                    )
+                    is RoktEvent.PlacementFailure -> com.mparticle.RoktEvent.PlacementFailure(event.id)
+                    is RoktEvent.PlacementInteractive -> com.mparticle.RoktEvent.PlacementInteractive(
+                        event.id
+                    )
+                    is RoktEvent.PlacementReady -> com.mparticle.RoktEvent.PlacementReady(event.id)
+                    is RoktEvent.CartItemInstantPurchase -> com.mparticle.RoktEvent.CartItemInstantPurchase(
+                        placementId = event.placementId,
+                        cartItemId = event.cartItemId,
+                        catalogItemId = event.catalogItemId,
+                        currency = event.currency,
+                        description = event.description,
+                        linkedProductId = event.linkedProductId,
+                        totalPrice = event.totalPrice,
+                        quantity = event.quantity,
+                        unitPrice = event.unitPrice
+                    )
+                    is RoktEvent.InitComplete -> com.mparticle.RoktEvent.InitComplete(event.success)
+                }
+            }
+    }
+
     override fun setWrapperSdkVersion(wrapperSdkVersion: WrapperSdkVersion) {
         val sdkFrameworkType = when (wrapperSdkVersion.sdk) {
             WrapperSdk.WrapperFlutter -> Flutter
@@ -324,7 +367,6 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         )
     }
 }
-
 
 fun PackageManager.getPackageInfoForApp(packageName: String, flags: Int = 0): PackageInfo =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
