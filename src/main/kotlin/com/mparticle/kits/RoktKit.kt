@@ -22,16 +22,17 @@ import com.mparticle.rokt.RoktConfig
 import com.mparticle.rokt.RoktEmbeddedView
 import com.rokt.roktsdk.CacheConfig
 import com.rokt.roktsdk.Rokt
-import com.rokt.roktsdk.Rokt.SdkFrameworkType.*
+import com.rokt.roktsdk.Rokt.SdkFrameworkType.Android
+import com.rokt.roktsdk.Rokt.SdkFrameworkType.Cordova
+import com.rokt.roktsdk.Rokt.SdkFrameworkType.Flutter
+import com.rokt.roktsdk.Rokt.SdkFrameworkType.ReactNative
 import com.rokt.roktsdk.RoktEvent
 import com.rokt.roktsdk.RoktWidgetDimensionCallBack
 import com.rokt.roktsdk.Widget
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.lang.ref.WeakReference
 import java.math.BigDecimal
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 
 /**
  * MParticle embedded implementation of the Rokt Library.
