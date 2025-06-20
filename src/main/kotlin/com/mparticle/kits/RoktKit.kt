@@ -20,6 +20,7 @@ import com.mparticle.kits.KitIntegration.IdentityListener
 import com.mparticle.kits.KitIntegration.RoktListener
 import com.mparticle.rokt.RoktConfig
 import com.mparticle.rokt.RoktEmbeddedView
+import com.mparticle.rokt.RoktOptions
 import com.rokt.roktsdk.CacheConfig
 import com.rokt.roktsdk.Rokt
 import com.rokt.roktsdk.Rokt.SdkFrameworkType.Android
@@ -62,13 +63,18 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
                     val info = manager.getPackageInfoForApp(context.packageName, 0)
                     val application = context.applicationContext as Application
                     val mparticleVersion = BuildConfig.VERSION_NAME
+                    
+                    // Get RoktOptions from the kit manager
+                    val roktOptions = kitManager?.roktOptions
+                    val fontFilePathMap = roktOptions?.fontFilePathMap ?: emptyMap()
+                    val fontPostScriptNames = roktOptions?.fontPostScriptNames ?: emptySet()
 
                     Rokt.init(
                         roktTagId = roktTagId,
                         appVersion = info.versionName,
                         application = application,
-                        fontPostScriptNames = emptySet(),
-                        fontFilePathMap = emptyMap(),
+                        fontPostScriptNames = fontPostScriptNames,
+                        fontFilePathMap = fontFilePathMap,
                         callback = null,
                         mParticleSdkVersion = mparticleVersion,
                         mParticleKitVersion = mparticleVersion
