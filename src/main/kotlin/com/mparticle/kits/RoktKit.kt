@@ -262,9 +262,6 @@ class RoktKit :
         Rokt.purchaseFinalized(placementId, catalogItemId, status)
     }
 
-    override fun close() {
-    }
-
     private fun mapToRoktConfig(config: RoktConfig): com.rokt.roktsdk.RoktConfig {
         val colorMode = when (config.colorMode) {
             RoktConfig.ColorMode.LIGHT -> com.rokt.roktsdk.RoktConfig.ColorMode.LIGHT
