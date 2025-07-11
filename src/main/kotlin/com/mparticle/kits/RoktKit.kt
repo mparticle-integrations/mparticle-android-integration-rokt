@@ -20,7 +20,6 @@ import com.mparticle.kits.KitIntegration.IdentityListener
 import com.mparticle.kits.KitIntegration.RoktListener
 import com.mparticle.rokt.RoktConfig
 import com.mparticle.rokt.RoktEmbeddedView
-import com.mparticle.rokt.RoktOptions
 import com.rokt.roktsdk.CacheConfig
 import com.rokt.roktsdk.Rokt
 import com.rokt.roktsdk.Rokt.SdkFrameworkType.Android
@@ -40,7 +39,9 @@ import java.math.BigDecimal
  *
  * Learn more at our [Developer Docs](https://docs.rokt.com/developers/integration-guides/android)
  */
-class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListener, Rokt.RoktCallback {
+@Suppress("unused")
+class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListener,
+    Rokt.RoktCallback {
     private var applicationContext: Context? = null
     private var mpRoktEventCallback: MpRoktEventCallback? = null
     override fun getName(): String = NAME
@@ -75,7 +76,11 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
                         application = application,
                         fontPostScriptNames = fontPostScriptNames,
                         fontFilePathMap = fontFilePathMap,
-                        callback = null,
+                        callback = object : Rokt.RoktInitCallback {
+                            override fun onInitComplete(success: Boolean) {
+                                Logger.verbose("Rokt Kit Initialization success: $success")
+                            }
+                        },
                         mParticleSdkVersion = mparticleVersion,
                         mParticleKitVersion = mparticleVersion
                     )
@@ -264,6 +269,10 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
 
     override fun purchaseFinalized(placementId: String, catalogItemId: String, status: Boolean) {
         Rokt.purchaseFinalized(placementId, catalogItemId, status)
+    }
+
+    override fun close() {
+        Rokt.close()
     }
 
     private fun mapToRoktConfig(config: RoktConfig): com.rokt.roktsdk.RoktConfig {
