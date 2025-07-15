@@ -1,5 +1,16 @@
 name: "Pull Request"
-on: pull_request
+on: [ workflow_dispatch, pull_request ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: write
+  id-token: write
+
 jobs:
   pr-check:
     name: "Pull Request Check"
