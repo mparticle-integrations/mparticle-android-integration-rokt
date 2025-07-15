@@ -41,6 +41,8 @@ const val ROKT_ATTRIBUTE_SANDBOX_MODE: String = "sandbox"
  *
  * Learn more at our [Developer Docs](https://docs.rokt.com/developers/integration-guides/android)
  */
+
+@Suppress("unused")
 class RoktKit :
     KitIntegration(),
     CommerceListener,
@@ -78,7 +80,11 @@ class RoktKit :
                         application = application,
                         fontPostScriptNames = fontPostScriptNames,
                         fontFilePathMap = fontFilePathMap,
-                        callback = null,
+                        callback = object : Rokt.RoktInitCallback {
+                            override fun onInitComplete(success: Boolean) {
+                                Logger.verbose("Rokt Kit Initialization success: $success")
+                            }
+                        },
                         mParticleSdkVersion = mparticleVersion,
                         mParticleKitVersion = mparticleVersion,
                     )
@@ -260,6 +266,10 @@ class RoktKit :
 
     override fun purchaseFinalized(placementId: String, catalogItemId: String, status: Boolean) {
         Rokt.purchaseFinalized(placementId, catalogItemId, status)
+    }
+
+    override fun close() {
+        Rokt.close()
     }
 
     private fun mapToRoktConfig(config: RoktConfig): com.rokt.roktsdk.RoktConfig {
