@@ -1,9 +1,6 @@
 package com.mparticle.kits.mocks
 
 import android.content.res.Resources
-import kotlin.Throws
-import android.content.res.Resources.NotFoundException
-import com.mparticle.kits.mocks.MockResources
 
 class MockResources : Resources(null, null, null) {
     override fun getIdentifier(name: String, defType: String, defPackage: String): Int {
@@ -25,12 +22,10 @@ class MockResources : Resources(null, null, null) {
     }
 
     @Throws(NotFoundException::class)
-    override fun getString(id: Int, vararg formatArgs: Any): String {
-        return super.getString(id, *formatArgs)
-    }
+    override fun getString(id: Int, vararg formatArgs: Any): String = super.getString(id, *formatArgs)
 
     companion object {
-        var TEST_APP_KEY = "the app key"
-        var TEST_APP_SECRET = "the app secret"
+        const val TEST_APP_KEY = "the app key"
+        const val TEST_APP_SECRET = "the app secret"
     }
 }
