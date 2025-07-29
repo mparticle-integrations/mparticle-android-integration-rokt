@@ -200,7 +200,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             finalAttributes[MPID] = mpid
         } ?: Logger.warning("RoktKit: No user ID available for placement")
 
-        //addIdentityAttributes(finalAttributes, filterUser)
+        addIdentityAttributes(finalAttributes, filterUser)
 
 
         val SANDBOX_MODE_ROKT: String = "sandbox"
@@ -323,27 +323,47 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
     private fun verifyHashedEmail(attributes: MutableMap<String, String>?) {
         if (attributes == null) return
 
-        val emailKey = "Email"
-        val otherKey = "Other"
+        val emailKey = MParticle.IdentityType.Email.name.lowercase()
+        val otherKey = MParticle.IdentityType.Other.name.lowercase()
         val emailShaKey = "emailsha256"
 
-        val emailSha = attributes[emailShaKey]
-        val otherValue = attributes[otherKey]
+        val emailSha = attributes.entries.find { it.key.equals(emailShaKey, ignoreCase = true) }?.value
+        val otherValue = attributes.entries.find { it.key.equals(otherKey, ignoreCase = true) }?.value
 
         when {
             !emailSha.isNullOrEmpty() -> {
-                attributes.remove(emailKey)
-                attributes.remove(otherKey)
+                // If emailsha256 is already present, remove entries with email and other keys
+                val iterator = attributes.entries.iterator()
+                while (iterator.hasNext()) {
+                    val entry = iterator.next()
+                    if (entry.key.equals(emailKey, ignoreCase = true) ||
+                        entry.key.equals(otherKey, ignoreCase = true)) {
+                        iterator.remove()
+                    }
+                }
             }
 
             !otherValue.isNullOrEmpty() -> {
-                attributes.remove(emailKey)
+                // If "other" has a value, treat it as hashed email
+                val iterator = attributes.entries.iterator()
+                while (iterator.hasNext()) {
+                    val entry = iterator.next()
+                    if (entry.key.equals(emailKey, ignoreCase = true)) {
+                        iterator.remove()
+                    }
+                }
                 attributes[emailShaKey] = otherValue
-                attributes.remove(otherKey)
+                val iterator2 = attributes.entries.iterator()
+                while (iterator2.hasNext()) {
+                    val entry = iterator2.next()
+                    if (entry.key.equals(otherKey, ignoreCase = true)) {
+                        iterator2.remove()
+                    }
+                }
             }
-
-            // else do nothing
+            // else: do nothing
         }
+        Logger.debug("Mansi "+attributes.size)
     }
 
     private fun getStringForIdentity(identityType: IdentityType): String {
