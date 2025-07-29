@@ -327,11 +327,11 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         val otherKey = MParticle.IdentityType.Other.name.lowercase()
         val emailShaKey = "emailsha256"
 
-        val emailSha = attributes.entries.find { it.key.equals(emailShaKey, ignoreCase = true) }?.value
+        val emailShaValue = attributes.entries.find { it.key.equals(emailShaKey, ignoreCase = true) }?.value
         val otherValue = attributes.entries.find { it.key.equals(otherKey, ignoreCase = true) }?.value
 
         when {
-            !emailSha.isNullOrEmpty() -> {
+            !emailShaValue.isNullOrEmpty() -> {
                 // If emailsha256 is already present, remove entries with email and other keys
                 val iterator = attributes.entries.iterator()
                 while (iterator.hasNext()) {
@@ -344,26 +344,19 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             }
 
             !otherValue.isNullOrEmpty() -> {
-                // If "other" has a value, treat it as hashed email
                 val iterator = attributes.entries.iterator()
                 while (iterator.hasNext()) {
                     val entry = iterator.next()
                     if (entry.key.equals(emailKey, ignoreCase = true)) {
                         iterator.remove()
                     }
-                }
-                attributes[emailShaKey] = otherValue
-                val iterator2 = attributes.entries.iterator()
-                while (iterator2.hasNext()) {
-                    val entry = iterator2.next()
                     if (entry.key.equals(otherKey, ignoreCase = true)) {
-                        iterator2.remove()
+                        iterator.remove()
                     }
                 }
+                attributes[emailShaKey] = otherValue
             }
-            // else: do nothing
         }
-        Logger.debug("Mansi "+attributes.size)
     }
 
     private fun getStringForIdentity(identityType: IdentityType): String {
