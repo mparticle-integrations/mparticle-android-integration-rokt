@@ -324,37 +324,20 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         if (attributes == null) return
 
         val emailKey = MParticle.IdentityType.Email.name.lowercase()
-        val otherKey = MParticle.IdentityType.Other.name.lowercase()
         val emailShaKey = "emailsha256"
 
         val emailShaValue = attributes.entries.find { it.key.equals(emailShaKey, ignoreCase = true) }?.value
-        val otherValue = attributes.entries.find { it.key.equals(otherKey, ignoreCase = true) }?.value
 
         when {
             !emailShaValue.isNullOrEmpty() -> {
-                // If emailsha256 is already present, remove entries with email and other keys
-                val iterator = attributes.entries.iterator()
-                while (iterator.hasNext()) {
-                    val entry = iterator.next()
-                    if (entry.key.equals(emailKey, ignoreCase = true) ||
-                        entry.key.equals(otherKey, ignoreCase = true)) {
-                        iterator.remove()
-                    }
-                }
-            }
-
-            !otherValue.isNullOrEmpty() -> {
+                // If emailsha256 is already present, remove entries with email
                 val iterator = attributes.entries.iterator()
                 while (iterator.hasNext()) {
                     val entry = iterator.next()
                     if (entry.key.equals(emailKey, ignoreCase = true)) {
                         iterator.remove()
                     }
-                    if (entry.key.equals(otherKey, ignoreCase = true)) {
-                        iterator.remove()
-                    }
                 }
-                attributes[emailShaKey] = otherValue
             }
         }
     }
