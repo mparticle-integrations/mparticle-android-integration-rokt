@@ -240,6 +240,34 @@ class RoktKitTests {
     }
 
     @Test
+    fun test_addIdentityAttributes_When_userIdentities_Contain_other() {
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
+        val userIdentities = HashMap<IdentityType, String>()
+        userIdentities.put(IdentityType.Email, "TestEmail@gamil.com")
+        userIdentities.put(IdentityType.Other, "hashedEmail@123.com")
+        Mockito.`when`(mockFilterUser.userIdentities).thenReturn(userIdentities)
+        val attributes: Map<String, String> = mapOf(
+            "key1" to "value1",
+            "key2" to "value2",
+            "key3" to "value3"
+        )
+        val method: Method = RoktKit::class.java.getDeclaredMethod(
+            "addIdentityAttributes",
+            Map::class.java,
+            FilteredMParticleUser::class.java
+        )
+        method.isAccessible = true
+        val result = method.invoke(roktKit, attributes, mockFilterUser) as Map<String, String>
+        assertEquals(5, result.size)
+
+        assertTrue(result.containsKey("key1"))
+        assertTrue(result.containsKey("key2"))
+        assertTrue(result.containsKey("key3"))
+        assertTrue(result.containsKey("email"))
+        assertTrue(result.containsKey("emailsha256"))
+    }
+
+    @Test
     fun testSetSdkWrapper_correctlySetsRoktFramework() {
         mockkObject(Rokt)
         every { Rokt.setFrameworkType(any()) } just runs
@@ -547,24 +575,6 @@ class RoktKitTests {
 
         assertFalse(attributes.containsKey("email"))
         assertEquals("hashed_email_value", attributes["emailsha256"])
-    }
-
-    @Test
-    fun TestverifyHashedEmail_removes_when_other_is_present_and_emailsha256_is_missing() {
-        val attributes = mutableMapOf(
-            "email" to "user@example.com",
-            "other" to "hashed_other_value"
-        )
-
-        val method: Method = RoktKit::class.java.getDeclaredMethod(
-            "verifyHashedEmail",
-            MutableMap::class.java
-        )
-        method.isAccessible = true
-        method.invoke(roktKit, attributes)
-
-        assertFalse(attributes.containsKey("email"))
-        assertEquals("hashed_other_value", attributes["emailsha256"])
     }
 
 

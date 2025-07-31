@@ -341,22 +341,12 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
                     }
                 }
             }
-            !otherValue.isNullOrEmpty() -> {
-                val iterator = attributes.entries.iterator()
-                while (iterator.hasNext()) {
-                    val entry = iterator.next()
-                    if (entry.key.equals(emailKey, ignoreCase = true)) {
-                        iterator.remove()
-                    }
-                }
-                attributes[emailShaKey] = otherValue
-            }
         }
     }
 
     private fun getStringForIdentity(identityType: IdentityType): String {
         return when (identityType) {
-            IdentityType.Other -> "other"
+            IdentityType.Other -> "emailsha256"
             IdentityType.CustomerId -> "customerid"
             IdentityType.Facebook -> "facebook"
             IdentityType.Twitter -> "twitter"
