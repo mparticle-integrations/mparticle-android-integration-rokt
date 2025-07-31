@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.json.JSONArray
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -528,6 +529,60 @@ class RoktKitTests {
         verify { Rokt.events(identifier2) }
 
         unmockkObject(Rokt)
+    }
+
+    @Test
+    fun TestverifyHashedEmail_removes_when_emailsha256_is_present() {
+        val attributes = mutableMapOf(
+            "email" to "user@example.com",
+            "emailsha256" to "hashed_email_value"
+        )
+        val method: Method = RoktKit::class.java.getDeclaredMethod(
+            "verifyHashedEmail",
+            MutableMap::class.java
+        )
+        method.isAccessible = true
+        method.invoke(roktKit, attributes)
+
+
+        assertFalse(attributes.containsKey("email"))
+        assertEquals("hashed_email_value", attributes["emailsha256"])
+    }
+
+    @Test
+    fun TestverifyHashedEmail_removes_when_other_is_present_and_emailsha256_is_missing() {
+        val attributes = mutableMapOf(
+            "email" to "user@example.com",
+            "other" to "hashed_other_value"
+        )
+
+        val method: Method = RoktKit::class.java.getDeclaredMethod(
+            "verifyHashedEmail",
+            MutableMap::class.java
+        )
+        method.isAccessible = true
+        method.invoke(roktKit, attributes)
+
+        assertFalse(attributes.containsKey("email"))
+        assertEquals("hashed_other_value", attributes["emailsha256"])
+    }
+
+
+    @Test
+    fun TestverifyHashedEmail_removes_when_neither_emailsha256_nor_other_is_present() {
+        val attributes = mutableMapOf(
+            "email" to "user@example.com"
+        )
+
+        val method: Method = RoktKit::class.java.getDeclaredMethod(
+            "verifyHashedEmail",
+            MutableMap::class.java
+        )
+        method.isAccessible = true
+        method.invoke(roktKit, attributes)
+
+        assertEquals("user@example.com", attributes["email"])
+        assertFalse(attributes.containsKey("emailsha256"))
     }
 
     internal inner class TestCoreCallbacks : CoreCallbacks {
