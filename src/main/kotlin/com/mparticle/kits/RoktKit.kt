@@ -324,11 +324,9 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         if (attributes == null) return
 
         val emailKey = MParticle.IdentityType.Email.name.lowercase()
-        val otherKey = MParticle.IdentityType.Other.name.lowercase()
         val emailShaKey = "emailsha256"
 
         val emailShaValue = attributes.entries.find { it.key.equals(emailShaKey, ignoreCase = true) }?.value
-        val otherValue = attributes.entries.find { it.key.equals(otherKey, ignoreCase = true) }?.value
 
         when {
             !emailShaValue.isNullOrEmpty() -> {

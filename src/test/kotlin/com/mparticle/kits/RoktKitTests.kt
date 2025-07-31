@@ -563,7 +563,8 @@ class RoktKitTests {
     fun TestverifyHashedEmail_removes_when_emailsha256_is_present() {
         val attributes = mutableMapOf(
             "email" to "user@example.com",
-            "emailsha256" to "hashed_email_value"
+            "emailsha256" to "hashed_email_value",
+            "other" to "Test"
         )
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "verifyHashedEmail",
@@ -575,6 +576,7 @@ class RoktKitTests {
 
         assertFalse(attributes.containsKey("email"))
         assertEquals("hashed_email_value", attributes["emailsha256"])
+        assertEquals("Test", attributes["other"])
     }
 
 
