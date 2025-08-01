@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
 import com.mparticle.BuildConfig
+import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
 import com.mparticle.MpRoktEventCallback
 import com.mparticle.UnloadReasons
@@ -188,7 +189,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         }?.toMap()
 
         this.mpRoktEventCallback = mpRoktEventCallback
-        val finalAttributes: HashMap<String, String> = HashMap<String, String>()
+        val finalAttributes = mutableMapOf<String, String>()
         filterUser?.userAttributes?.let { userAttrs ->
             for ((key, value) in userAttrs) {
                 finalAttributes[key] = value.toString()
@@ -206,6 +207,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         attributes?.get(SANDBOX_MODE_ROKT)?.let { value ->
             finalAttributes.put(SANDBOX_MODE_ROKT, value)
         }
+        verifyHashedEmail(finalAttributes)
         val roktConfig = mpRoktConfig?.let { mapToRoktConfig(it) }
         Rokt.execute(
             viewName,
@@ -318,9 +320,31 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         }
     }
 
+    private fun verifyHashedEmail(attributes: MutableMap<String, String>?) {
+        if (attributes == null) return
+
+        val emailKey = MParticle.IdentityType.Email.name.lowercase()
+        val emailShaKey = "emailsha256"
+
+        val emailShaValue = attributes.entries.find { it.key.equals(emailShaKey, ignoreCase = true) }?.value
+
+        when {
+            !emailShaValue.isNullOrEmpty() -> {
+                // If emailsha256 is already present, remove entries with email
+                val iterator = attributes.entries.iterator()
+                while (iterator.hasNext()) {
+                    val entry = iterator.next()
+                    if (entry.key.equals(emailKey, ignoreCase = true)) {
+                        iterator.remove()
+                    }
+                }
+            }
+        }
+    }
+
     private fun getStringForIdentity(identityType: IdentityType): String {
         return when (identityType) {
-            IdentityType.Other -> "other"
+            IdentityType.Other -> "emailsha256"
             IdentityType.CustomerId -> "customerid"
             IdentityType.Facebook -> "facebook"
             IdentityType.Twitter -> "twitter"
