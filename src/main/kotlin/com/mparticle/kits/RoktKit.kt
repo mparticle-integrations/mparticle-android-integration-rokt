@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
+import androidx.compose.runtime.Composable
 import com.mparticle.BuildConfig
 import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
@@ -23,6 +24,7 @@ import com.mparticle.rokt.RoktConfig
 import com.mparticle.rokt.RoktEmbeddedView
 import com.rokt.roktsdk.CacheConfig
 import com.rokt.roktsdk.Rokt
+import com.rokt.roktsdk.Rokt.RoktCallback
 import com.rokt.roktsdk.Rokt.SdkFrameworkType.Android
 import com.rokt.roktsdk.Rokt.SdkFrameworkType.Cordova
 import com.rokt.roktsdk.Rokt.SdkFrameworkType.Flutter
@@ -30,8 +32,12 @@ import com.rokt.roktsdk.Rokt.SdkFrameworkType.ReactNative
 import com.rokt.roktsdk.RoktEvent
 import com.rokt.roktsdk.RoktWidgetDimensionCallBack
 import com.rokt.roktsdk.Widget
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.math.BigDecimal
 
@@ -49,10 +55,13 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
 
     override fun getInstance(): RoktKit = this
 
+    private var deferredAttributes: CompletableDeferred<Map<String, String>>? = null
+
     public override fun onKitCreate(
         settings: Map<String, String>,
         ctx: Context
     ): List<ReportingMessage> {
+        register(this)
         applicationContext = ctx.applicationContext
         val roktTagId = settings[ROKT_ACCOUNT_ID]
         if (KitUtils.isEmpty(roktTagId)) {
@@ -189,6 +198,23 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         }?.toMap()
 
         this.mpRoktEventCallback = mpRoktEventCallback
+        val finalAttributes = prepareFinalAttributes(filterUser, attributes)
+        val roktConfig = mpRoktConfig?.let { mapToRoktConfig(it) }
+        Rokt.execute(
+            viewName,
+            finalAttributes,
+            this,
+            // Pass placeholders and fontTypefaces only if they are not empty or null
+            placeholders.takeIf { it?.isNotEmpty() == true },
+            fontTypefaces.takeIf { it?.isNotEmpty() == true },
+            roktConfig
+        )
+    }
+
+    private fun prepareFinalAttributes(
+        filterUser: FilteredMParticleUser?,
+        attributes: Map<String, String>?
+    ): Map<String, String> {
         val finalAttributes = mutableMapOf<String, String>()
         filterUser?.userAttributes?.let { userAttrs ->
             for ((key, value) in userAttrs) {
@@ -208,16 +234,9 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             finalAttributes.put(SANDBOX_MODE_ROKT, value)
         }
         verifyHashedEmail(finalAttributes)
-        val roktConfig = mpRoktConfig?.let { mapToRoktConfig(it) }
-        Rokt.execute(
-            viewName,
-            finalAttributes,
-            this,
-            // Pass placeholders and fontTypefaces only if they are not empty or null
-            placeholders.takeIf { it?.isNotEmpty() == true },
-            fontTypefaces.takeIf { it?.isNotEmpty() == true },
-            roktConfig
-        )
+
+
+        return finalAttributes
     }
 
     override fun events(identifier: String): Flow<com.mparticle.RoktEvent> {
@@ -275,6 +294,26 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
 
     override fun close() {
         Rokt.close()
+    }
+
+    override fun callRoktComposable(attributes: MutableMap<String, String>, user: FilteredMParticleUser?) {
+        val finalAttributes = prepareFinalAttributes(user, attributes)
+        deferredAttributes?.complete(finalAttributes)
+    }
+
+    fun ComposableTest(
+        attributes: Map<String, String>,
+        mpRoktEventCallback: MpRoktEventCallback?,
+        onResult: (Map<String, String>, RoktCallback) -> Unit
+    ) {
+        val instance = MParticle.getInstance()
+        deferredAttributes = CompletableDeferred()
+        instance?.Internal()?.kitManager?.callExecuteForComposable(attributes)
+        this.mpRoktEventCallback = mpRoktEventCallback
+        CoroutineScope(Dispatchers.Default).launch {
+            val resultAttributes = deferredAttributes!!.await()
+            onResult(resultAttributes, this@RoktKit)
+        }
     }
 
     private fun mapToRoktConfig(config: RoktConfig): com.rokt.roktsdk.RoktConfig {
@@ -371,6 +410,13 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
     }
 
     companion object {
+        private var instance: RoktKit? = null
+
+        fun register(kit: RoktKit) {
+            instance = kit
+        }
+
+        fun get(): RoktKit? = instance
         const val NAME = "Rokt"
         const val ROKT_ACCOUNT_ID = "accountId"
         const val MPID = "mpid"
