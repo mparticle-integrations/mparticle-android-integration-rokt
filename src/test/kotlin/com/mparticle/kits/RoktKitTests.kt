@@ -250,12 +250,12 @@ class RoktKitTests {
         val attributes: Map<String, String> = mapOf(
             "key1" to "value1",
             "key2" to "value2",
-            "key3" to "value3"
+            "key3" to "value3",
         )
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "addIdentityAttributes",
             Map::class.java,
-            FilteredMParticleUser::class.java
+            FilteredMParticleUser::class.java,
         )
         method.isAccessible = true
         val result = method.invoke(roktKit, attributes, mockFilterUser) as Map<String, String>
@@ -564,35 +564,33 @@ class RoktKitTests {
     }
 
     @Test
-    fun TestverifyHashedEmail_removes_when_emailsha256_is_present() {
+    fun testVerifyHashedEmail_removes_when_emailsha256_is_present() {
         val attributes = mutableMapOf(
             "email" to "user@example.com",
             "emailsha256" to "hashed_email_value",
-            "other" to "Test"
+            "other" to "Test",
         )
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "verifyHashedEmail",
-            MutableMap::class.java
+            MutableMap::class.java,
         )
         method.isAccessible = true
         method.invoke(roktKit, attributes)
-
 
         assertFalse(attributes.containsKey("email"))
         assertEquals("hashed_email_value", attributes["emailsha256"])
         assertEquals("Test", attributes["other"])
     }
 
-
     @Test
-    fun TestverifyHashedEmail_removes_when_neither_emailsha256_nor_other_is_present() {
+    fun testVerifyHashedEmail_removes_when_neither_emailsha256_nor_other_is_present() {
         val attributes = mutableMapOf(
-            "email" to "user@example.com"
+            "email" to "user@example.com",
         )
 
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "verifyHashedEmail",
-            MutableMap::class.java
+            MutableMap::class.java,
         )
         method.isAccessible = true
         method.invoke(roktKit, attributes)

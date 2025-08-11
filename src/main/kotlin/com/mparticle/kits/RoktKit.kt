@@ -340,32 +340,30 @@ class RoktKit :
         }
     }
 
-    private fun getStringForIdentity(identityType: IdentityType): String {
-        return when (identityType) {
-            IdentityType.Other -> "emailsha256"
-            IdentityType.CustomerId -> "customerid"
-            IdentityType.Facebook -> "facebook"
-            IdentityType.Twitter -> "twitter"
-            IdentityType.Google -> "google"
-            IdentityType.Microsoft -> "microsoft"
-            IdentityType.Yahoo -> "yahoo"
-            IdentityType.Email -> "email"
-            IdentityType.Alias -> "alias"
-            IdentityType.FacebookCustomAudienceId -> "facebookcustomaudienceid"
-            IdentityType.Other2 -> "other2"
-            IdentityType.Other3 -> "other3"
-            IdentityType.Other4 -> "other4"
-            IdentityType.Other5 -> "other5"
-            IdentityType.Other6 -> "other6"
-            IdentityType.Other7 -> "other7"
-            IdentityType.Other8 -> "other8"
-            IdentityType.Other9 -> "other9"
-            IdentityType.Other10 -> "other10"
-            IdentityType.MobileNumber -> "mobilenumber"
-            IdentityType.PhoneNumber2 -> "phonenumber2"
-            IdentityType.PhoneNumber3 -> "phonenumber3"
-            else -> ""
-        }
+    private fun getStringForIdentity(identityType: IdentityType): String = when (identityType) {
+        IdentityType.Other -> "emailsha256"
+        IdentityType.CustomerId -> "customerid"
+        IdentityType.Facebook -> "facebook"
+        IdentityType.Twitter -> "twitter"
+        IdentityType.Google -> "google"
+        IdentityType.Microsoft -> "microsoft"
+        IdentityType.Yahoo -> "yahoo"
+        IdentityType.Email -> "email"
+        IdentityType.Alias -> "alias"
+        IdentityType.FacebookCustomAudienceId -> "facebookcustomaudienceid"
+        IdentityType.Other2 -> "other2"
+        IdentityType.Other3 -> "other3"
+        IdentityType.Other4 -> "other4"
+        IdentityType.Other5 -> "other5"
+        IdentityType.Other6 -> "other6"
+        IdentityType.Other7 -> "other7"
+        IdentityType.Other8 -> "other8"
+        IdentityType.Other9 -> "other9"
+        IdentityType.Other10 -> "other10"
+        IdentityType.MobileNumber -> "mobilenumber"
+        IdentityType.PhoneNumber2 -> "phonenumber2"
+        IdentityType.PhoneNumber3 -> "phonenumber3"
+        else -> ""
     }
 
     companion object {
