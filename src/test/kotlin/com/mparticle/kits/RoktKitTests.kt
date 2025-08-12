@@ -18,7 +18,14 @@ import com.mparticle.internal.CoreCallbacks.KitListener
 import com.rokt.roktsdk.FulfillmentAttributes
 import com.rokt.roktsdk.Rokt
 import com.rokt.roktsdk.RoktEvent
-import io.mockk.*
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.runs
+import io.mockk.unmockkObject
+import io.mockk.verify
+import io.mockk.verifyOrder
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
@@ -35,7 +42,6 @@ import java.lang.ref.WeakReference
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
-import java.util.*
 
 class RoktKitTests {
     private val context = mockk<Context>(relaxed = true)
@@ -53,34 +59,31 @@ class RoktKitTests {
         MParticle.setInstance(mock(MParticle::class.java))
         Mockito.`when`(MParticle.getInstance()?.Identity()).thenReturn(
             mock(
-                IdentityApi::class.java
-            )
+                IdentityApi::class.java,
+            ),
         )
         val kitManager = KitManagerImpl(
             mock(
-                Context::class.java
-            ), null, emptyCoreCallbacks, mock(MParticleOptions::class.java)
+                Context::class.java,
+            ),
+            null,
+            emptyCoreCallbacks,
+            mock(MParticleOptions::class.java),
         )
-        roktKit.kitManager = kitManager/*
-        roktKit.configuration =
-            KitConfiguration.createKitConfiguration(JSONObject().put("id", "-1"))*/
-
+        roktKit.kitManager = kitManager
+        // roktKit.configuration = KitConfiguration.createKitConfiguration(JSONObject().put("id", "-1"))
     }
 
-
-
-    private inner class TestKitManager internal constructor() :
+    private inner class TestKitManager :
         KitManagerImpl(context, null, TestCoreCallbacks(), mock(MParticleOptions::class.java)) {
         var attributes = HashMap<String, String>()
         var result: AttributionResult? = null
         private var error: AttributionError? = null
-        public override fun getIntegrationAttributes(kitIntegration: KitIntegration): Map<String, String> {
-            return attributes
-        }
+        public override fun getIntegrationAttributes(kitIntegration: KitIntegration): Map<String, String> = attributes
 
         public override fun setIntegrationAttributes(
             kitIntegration: KitIntegration,
-            integrationAttributes: Map<String, String>
+            integrationAttributes: Map<String, String>,
         ) {
             attributes = integrationAttributes as HashMap<String, String>
         }
@@ -100,23 +103,22 @@ class RoktKitTests {
 
     private inner class TestMParticle : MParticle() {
         override fun Identity(): IdentityApi = mock(IdentityApi::class.java)
-
     }
 
     @Test
-    fun test_addIdentityAttributes_When_userIdentities_IS_Null(){
+    fun test_addIdentityAttributes_When_userIdentities_IS_Null() {
         val mockFilterUser = mock(FilteredMParticleUser::class.java)
         val userIdentities = HashMap<IdentityType, String>()
         Mockito.`when`(mockFilterUser.userIdentities).thenReturn(userIdentities)
         val attributes: Map<String, String> = mapOf(
             "key1" to "value1",
             "key2" to "value2",
-            "key3" to "value3"
+            "key3" to "value3",
         )
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "addIdentityAttributes",
             Map::class.java,
-            FilteredMParticleUser::class.java
+            FilteredMParticleUser::class.java,
         )
         method.isAccessible = true
         val result = method.invoke(roktKit, attributes, mockFilterUser) as Map<String, String>
@@ -128,20 +130,20 @@ class RoktKitTests {
     }
 
     @Test
-    fun test_addIdentityAttributes_When_userIdentities_Contain_value(){
+    fun test_addIdentityAttributes_When_userIdentities_Contain_value() {
         val mockFilterUser = mock(FilteredMParticleUser::class.java)
         val userIdentities = HashMap<IdentityType, String>()
-        userIdentities.put(IdentityType.Email,"TestEmail@gamil.com")
+        userIdentities.put(IdentityType.Email, "TestEmail@gamil.com")
         Mockito.`when`(mockFilterUser.userIdentities).thenReturn(userIdentities)
         val attributes: Map<String, String> = mapOf(
             "key1" to "value1",
             "key2" to "value2",
-            "key3" to "value3"
+            "key3" to "value3",
         )
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "addIdentityAttributes",
             Map::class.java,
-            FilteredMParticleUser::class.java
+            FilteredMParticleUser::class.java,
         )
         method.isAccessible = true
         val result = method.invoke(roktKit, attributes, mockFilterUser) as Map<String, String>
@@ -151,25 +153,24 @@ class RoktKitTests {
         assertTrue(result.containsKey("key2"))
         assertTrue(result.containsKey("key3"))
         assertTrue(result.containsKey("email"))
-
     }
 
     @Test
-    fun test_addIdentityAttributes_When_userIdentities_And_attributes_contains_same_key(){
+    fun test_addIdentityAttributes_When_userIdentities_And_attributes_contains_same_key() {
         val mockFilterUser = mock(FilteredMParticleUser::class.java)
         val userIdentities = HashMap<IdentityType, String>()
-        userIdentities.put(IdentityType.Email,"TestEmail@gamil.com")
+        userIdentities.put(IdentityType.Email, "TestEmail@gamil.com")
         Mockito.`when`(mockFilterUser.userIdentities).thenReturn(userIdentities)
         val attributes: Map<String, String> = mapOf(
             "key1" to "value1",
             "key2" to "value2",
             "key3" to "value3",
-            "email" to "abc@gmail.com"
+            "email" to "abc@gmail.com",
         )
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "addIdentityAttributes",
             Map::class.java,
-            FilteredMParticleUser::class.java
+            FilteredMParticleUser::class.java,
         )
         method.isAccessible = true
         val result = method.invoke(roktKit, attributes, mockFilterUser) as Map<String, String>
@@ -184,9 +185,9 @@ class RoktKitTests {
                 "key1" to "value1",
                 "key2" to "value2",
                 "key3" to "value3",
-                "email" to "TestEmail@gamil.com"
+                "email" to "TestEmail@gamil.com",
             ),
-            result
+            result,
         )
     }
 
@@ -195,10 +196,10 @@ class RoktKitTests {
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "addIdentityAttributes",
             Map::class.java,
-            FilteredMParticleUser::class.java
+            FilteredMParticleUser::class.java,
         )
         method.isAccessible = true
-        val result =  method.invoke(roktKit, null, null) as Map<String, String>
+        val result = method.invoke(roktKit, null, null) as Map<String, String>
         assertTrue(result.isEmpty())
     }
 
@@ -206,12 +207,12 @@ class RoktKitTests {
     fun testAddIdentityAttributes_nullAttributes_validUser() {
         val mockFilterUser = mock(FilteredMParticleUser::class.java)
         val userIdentities = HashMap<IdentityType, String>()
-        userIdentities.put(IdentityType.Email,"TestEmail@gamil.com")
+        userIdentities.put(IdentityType.Email, "TestEmail@gamil.com")
         Mockito.`when`(mockFilterUser.userIdentities).thenReturn(userIdentities)
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "addIdentityAttributes",
             Map::class.java,
-            FilteredMParticleUser::class.java
+            FilteredMParticleUser::class.java,
         )
         method.isAccessible = true
         val result = method.invoke(roktKit, null, mockFilterUser) as Map<String, String>
@@ -224,12 +225,12 @@ class RoktKitTests {
         val attributes: Map<String, String> = mapOf(
             "key1" to "value1",
             "key2" to "value2",
-            "key3" to "value3"
+            "key3" to "value3",
         )
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "addIdentityAttributes",
             Map::class.java,
-            FilteredMParticleUser::class.java
+            FilteredMParticleUser::class.java,
         )
         method.isAccessible = true
         val result = method.invoke(roktKit, attributes, null) as Map<String, String>
@@ -249,12 +250,12 @@ class RoktKitTests {
         val attributes: Map<String, String> = mapOf(
             "key1" to "value1",
             "key2" to "value2",
-            "key3" to "value3"
+            "key3" to "value3",
         )
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "addIdentityAttributes",
             Map::class.java,
-            FilteredMParticleUser::class.java
+            FilteredMParticleUser::class.java,
         )
         method.isAccessible = true
         val result = method.invoke(roktKit, attributes, mockFilterUser) as Map<String, String>
@@ -317,12 +318,12 @@ class RoktKitTests {
     fun testRoktEventMapping_FirstPositiveEngagement() = runTest {
         mockkObject(Rokt)
         val placementId = "test-placement-123"
-        val roktEvent = RoktEvent.FirstPositiveEngagement(placementId,
+        val roktEvent = RoktEvent.FirstPositiveEngagement(
+            placementId,
             object : FulfillmentAttributes {
                 override fun sendAttributes(attributes: Map<String, String>) {
-
                 }
-            }
+            },
         )
         every { Rokt.events(any()) } returns flowOf(roktEvent)
 
@@ -462,23 +463,26 @@ class RoktKitTests {
             linkedProductId = "linked-product-789",
             totalPrice = 99.99,
             quantity = 2,
-            unitPrice = 49.99
+            unitPrice = 49.99,
         )
         every { Rokt.events(any()) } returns flowOf(roktEvent)
 
         val result = roktKit.events("").first()
 
-        assertEquals(result, com.mparticle.RoktEvent.CartItemInstantPurchase(
-            placementId = "test-placement-purchase",
-            cartItemId = "cart-item-123",
-            catalogItemId = "catalog-item-456",
-            currency = "USD",
-            description = "Test product description",
-            linkedProductId = "linked-product-789",
-            totalPrice = 99.99,
-            quantity = 2,
-            unitPrice = 49.99
-        ))
+        assertEquals(
+            result,
+            com.mparticle.RoktEvent.CartItemInstantPurchase(
+                placementId = "test-placement-purchase",
+                cartItemId = "cart-item-123",
+                catalogItemId = "catalog-item-456",
+                currency = "USD",
+                description = "Test product description",
+                linkedProductId = "linked-product-789",
+                totalPrice = 99.99,
+                quantity = 2,
+                unitPrice = 49.99,
+            ),
+        )
         unmockkObject(Rokt)
     }
 
@@ -513,7 +517,7 @@ class RoktKitTests {
         val events = listOf(
             RoktEvent.ShowLoadingIndicator,
             RoktEvent.HideLoadingIndicator,
-            RoktEvent.InitComplete(true)
+            RoktEvent.InitComplete(true),
         )
         every { Rokt.events(any()) } returns flowOf(*events.toTypedArray())
 
@@ -560,35 +564,33 @@ class RoktKitTests {
     }
 
     @Test
-    fun TestverifyHashedEmail_removes_when_emailsha256_is_present() {
+    fun testVerifyHashedEmail_removes_when_emailsha256_is_present() {
         val attributes = mutableMapOf(
             "email" to "user@example.com",
             "emailsha256" to "hashed_email_value",
-            "other" to "Test"
+            "other" to "Test",
         )
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "verifyHashedEmail",
-            MutableMap::class.java
+            MutableMap::class.java,
         )
         method.isAccessible = true
         method.invoke(roktKit, attributes)
-
 
         assertFalse(attributes.containsKey("email"))
         assertEquals("hashed_email_value", attributes["emailsha256"])
         assertEquals("Test", attributes["other"])
     }
 
-
     @Test
-    fun TestverifyHashedEmail_removes_when_neither_emailsha256_nor_other_is_present() {
+    fun testVerifyHashedEmail_removes_when_neither_emailsha256_nor_other_is_present() {
         val attributes = mutableMapOf(
-            "email" to "user@example.com"
+            "email" to "user@example.com",
         )
 
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "verifyHashedEmail",
-            MutableMap::class.java
+            MutableMap::class.java,
         )
         method.isAccessible = true
         method.invoke(roktKit, attributes)
@@ -601,8 +603,8 @@ class RoktKitTests {
         override fun isBackgrounded(): Boolean = false
         override fun getUserBucket(): Int = 0
         override fun isEnabled(): Boolean = false
-        override fun setIntegrationAttributes(i: Int, map: Map<String, String>) {}
-        override fun getIntegrationAttributes(i: Int): Map<String, String>? = null
+        override fun setIntegrationAttributes(kitId: Int, integrationAttributes: Map<String, String>) {}
+        override fun getIntegrationAttributes(kitId: Int): Map<String, String>? = null
         override fun getCurrentActivity(): WeakReference<Activity>? = null
         override fun getLatestKitConfiguration(): JSONArray? = null
         override fun getDataplanOptions(): DataplanOptions? = null
@@ -611,17 +613,15 @@ class RoktKitTests {
         override fun getPushInstanceId(): String? = null
         override fun getLaunchUri(): Uri? = null
         override fun getLaunchAction(): String? = null
-        override fun getKitListener(): KitListener {
-            return object : KitListener {
-                override fun kitFound(kitId: Int) {}
-                override fun kitConfigReceived(kitId: Int, configuration: String?) {}
-                override fun kitExcluded(kitId: Int, reason: String?) {}
-                override fun kitStarted(kitId: Int) {}
-                override fun onKitApiCalled(kitId: Int, used: Boolean?, vararg objects: Any?) {
-                }
+        override fun getKitListener(): KitListener = object : KitListener {
+            override fun kitFound(kitId: Int) {}
+            override fun kitConfigReceived(kitId: Int, configuration: String?) {}
+            override fun kitExcluded(kitId: Int, reason: String?) {}
+            override fun kitStarted(kitId: Int) {}
+            override fun onKitApiCalled(kitId: Int, used: Boolean?, vararg objects: Any?) {
+            }
 
-                override fun onKitApiCalled(methodName: String?, kitId: Int, used: Boolean?, vararg objects: Any?) {
-                }
+            override fun onKitApiCalled(methodName: String?, kitId: Int, used: Boolean?, vararg objects: Any?) {
             }
         }
     }
@@ -633,8 +633,8 @@ class RoktKitTests {
         private const val TEST_KIT_ID = 0x01
 
         /*
-     * Test Helpers
-     */
+         * Test Helpers
+         */
         @Throws(Exception::class)
         private fun setTestSdkVersion(sdkVersion: Int) {
             setFinalStatic(VERSION::class.java.getField("SDK_INT"), sdkVersion)
@@ -643,11 +643,10 @@ class RoktKitTests {
         @Throws(Exception::class)
         private fun setFinalStatic(field: Field, newValue: Int) {
             field.isAccessible = true
-            val getDeclaredFields0 =
-                Class::class.java.getDeclaredMethod(
-                    "getDeclaredFields0",
-                    Boolean::class.javaPrimitiveType
-                )
+            val getDeclaredFields0 = Class::class.java.getDeclaredMethod(
+                "getDeclaredFields0",
+                Boolean::class.javaPrimitiveType,
+            )
             getDeclaredFields0.isAccessible = true
             val fields = getDeclaredFields0.invoke(Field::class.java, false) as Array<Field>
             var modifiersField: Field? = null
@@ -658,9 +657,8 @@ class RoktKitTests {
                 }
             }
             modifiersField!!.isAccessible = true
-            modifiersField!!.setInt(field, field.modifiers and Modifier.FINAL.inv())
+            modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
             field[null] = newValue
-
         }
     }
 
@@ -672,9 +670,9 @@ class RoktKitTests {
 
         override fun isEnabled(): Boolean = false
 
-        override fun setIntegrationAttributes(i: Int, map: Map<String, String>) {}
+        override fun setIntegrationAttributes(kitId: Int, integrationAttributes: Map<String, String>) {}
 
-        override fun getIntegrationAttributes(i: Int): Map<String, String>? = null
+        override fun getIntegrationAttributes(kitId: Int): Map<String, String>? = null
 
         override fun getCurrentActivity(): WeakReference<Activity> = WeakReference(activity)
 
@@ -692,15 +690,13 @@ class RoktKitTests {
 
         override fun getLaunchAction(): String? = null
 
-        override fun getKitListener(): KitListener {
-            return object : KitListener {
-                override fun kitFound(kitId: Int) {}
-                override fun kitConfigReceived(kitId: Int, configuration: String?) {}
-                override fun kitExcluded(kitId: Int, reason: String?) {}
-                override fun kitStarted(kitId: Int) {}
-                override fun onKitApiCalled(kitId: Int, used: Boolean?, vararg objects: Any?) {}
-                override fun onKitApiCalled(methodName: String?, kitId: Int, used: Boolean?, vararg objects: Any?) {}
-            }
+        override fun getKitListener(): KitListener = object : KitListener {
+            override fun kitFound(kitId: Int) {}
+            override fun kitConfigReceived(kitId: Int, configuration: String?) {}
+            override fun kitExcluded(kitId: Int, reason: String?) {}
+            override fun kitStarted(kitId: Int) {}
+            override fun onKitApiCalled(kitId: Int, used: Boolean?, vararg objects: Any?) {}
+            override fun onKitApiCalled(methodName: String?, kitId: Int, used: Boolean?, vararg objects: Any?) {}
         }
     }
 }

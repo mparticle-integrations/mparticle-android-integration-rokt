@@ -35,13 +35,20 @@ import kotlinx.coroutines.flow.map
 import java.lang.ref.WeakReference
 import java.math.BigDecimal
 
+const val ROKT_ATTRIBUTE_SANDBOX_MODE: String = "sandbox"
+
 /**
  * MParticle embedded implementation of the Rokt Library.
  *
  * Learn more at our [Developer Docs](https://docs.rokt.com/developers/integration-guides/android)
  */
+
 @Suppress("unused")
-class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListener,
+class RoktKit :
+    KitIntegration(),
+    CommerceListener,
+    IdentityListener,
+    RoktListener,
     Rokt.RoktCallback {
     private var applicationContext: Context? = null
     private var mpRoktEventCallback: MpRoktEventCallback? = null
@@ -49,10 +56,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
 
     override fun getInstance(): RoktKit = this
 
-    public override fun onKitCreate(
-        settings: Map<String, String>,
-        ctx: Context
-    ): List<ReportingMessage> {
+    public override fun onKitCreate(settings: Map<String, String>, ctx: Context): List<ReportingMessage> {
         applicationContext = ctx.applicationContext
         val roktTagId = settings[ROKT_ACCOUNT_ID]
         if (KitUtils.isEmpty(roktTagId)) {
@@ -65,7 +69,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
                     val info = manager.getPackageInfoForApp(context.packageName, 0)
                     val application = context.applicationContext as Application
                     val mparticleVersion = BuildConfig.VERSION_NAME
-                    
+
                     // Get RoktOptions from the kit manager
                     val roktOptions = kitManager?.roktOptions
                     val fontFilePathMap = roktOptions?.fontFilePathMap ?: emptyMap()
@@ -83,9 +87,8 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
                             }
                         },
                         mParticleSdkVersion = mparticleVersion,
-                        mParticleKitVersion = mparticleVersion
+                        mParticleKitVersion = mparticleVersion,
                     )
-
                 } catch (e: PackageManager.NameNotFoundException) {
                     throwOnKitCreateError(NO_APP_VERSION_FOUND)
                 } catch (e: Exception) {
@@ -106,38 +109,38 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
      * Overrides for CommerceListener
      */
     override fun logLtvIncrease(
-        bigDecimal: BigDecimal, bigDecimal1: BigDecimal,
-        s: String, map: Map<String, String>
+        bigDecimal: BigDecimal,
+        bigDecimal1: BigDecimal,
+        s: String,
+        map: Map<String, String>,
     ): List<ReportingMessage> = emptyList()
 
-    override fun logEvent(commerceEvent: CommerceEvent): List<ReportingMessage> {
-        return emptyList()
-    }
+    override fun logEvent(commerceEvent: CommerceEvent): List<ReportingMessage> = emptyList()
 
     /*
      * Overrides for IdentityListener
      */
     override fun onIdentifyCompleted(
         mParticleUser: MParticleUser,
-        filteredIdentityApiRequest: FilteredIdentityApiRequest
+        filteredIdentityApiRequest: FilteredIdentityApiRequest,
     ) {
     }
 
     override fun onLoginCompleted(
         mParticleUser: MParticleUser,
-        filteredIdentityApiRequest: FilteredIdentityApiRequest
+        filteredIdentityApiRequest: FilteredIdentityApiRequest,
     ) {
     }
 
     override fun onLogoutCompleted(
         mParticleUser: MParticleUser,
-        filteredIdentityApiRequest: FilteredIdentityApiRequest
+        filteredIdentityApiRequest: FilteredIdentityApiRequest,
     ) {
     }
 
     override fun onModifyCompleted(
         mParticleUser: MParticleUser,
-        filteredIdentityApiRequest: FilteredIdentityApiRequest
+        filteredIdentityApiRequest: FilteredIdentityApiRequest,
     ) {
     }
 
@@ -147,14 +150,12 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         Logger.error(t, "RoktKit: $message")
     }
 
-    private fun throwOnKitCreateError(message: String) {
-        throw IllegalArgumentException(message)
-    }
+    private fun throwOnKitCreateError(message: String): Unit = throw IllegalArgumentException(message)
 
     /*
       For more details, visit the official documentation:
      https://docs.rokt.com/developers/integration-guides/android/how-to/adding-a-placement/
-    */
+     */
     override fun execute(
         viewName: String,
         attributes: Map<String, String>,
@@ -162,28 +163,24 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         placeHolders: MutableMap<String, WeakReference<RoktEmbeddedView>>?,
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
         filterUser: FilteredMParticleUser?,
-        mpRoktConfig: RoktConfig?
+        mpRoktConfig: RoktConfig?,
     ) {
         val placeholders: Map<String, WeakReference<Widget>>? = placeHolders?.mapNotNull { entry ->
             val widget = Widget(entry.value.get()?.context as Context)
             entry.value.get()?.removeAllViews()
             entry.value.get()?.addView(widget)
             entry.value.get()?.dimensionCallBack?.let {
-                widget.registerDimensionListener(object: RoktWidgetDimensionCallBack {
-                    override fun onHeightChanged(height: Int) {
-                        it.onHeightChanged(height)
-                    }
+                widget.registerDimensionListener(
+                    object : RoktWidgetDimensionCallBack {
+                        override fun onHeightChanged(height: Int) {
+                            it.onHeightChanged(height)
+                        }
 
-                    override fun onMarginChanged(
-                        start: Int,
-                        top: Int,
-                        end: Int,
-                        bottom: Int
-                    ) {
-                        it.onMarginChanged(start, top, end, bottom)
-                    }
-
-                })
+                        override fun onMarginChanged(start: Int, top: Int, end: Int, bottom: Int) {
+                            it.onMarginChanged(start, top, end, bottom)
+                        }
+                    },
+                )
             }
             entry.key to WeakReference(widget)
         }?.toMap()
@@ -202,10 +199,8 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
 
         addIdentityAttributes(finalAttributes, filterUser)
 
-
-        val SANDBOX_MODE_ROKT: String = "sandbox"
-        attributes?.get(SANDBOX_MODE_ROKT)?.let { value ->
-            finalAttributes.put(SANDBOX_MODE_ROKT, value)
+        attributes[ROKT_ATTRIBUTE_SANDBOX_MODE]?.let { value ->
+            finalAttributes.put(ROKT_ATTRIBUTE_SANDBOX_MODE, value)
         }
         verifyHashedEmail(finalAttributes)
         val roktConfig = mpRoktConfig?.let { mapToRoktConfig(it) }
@@ -216,47 +211,49 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
             // Pass placeholders and fontTypefaces only if they are not empty or null
             placeholders.takeIf { it?.isNotEmpty() == true },
             fontTypefaces.takeIf { it?.isNotEmpty() == true },
-            roktConfig
+            roktConfig,
         )
     }
 
-    override fun events(identifier: String): Flow<com.mparticle.RoktEvent> {
-        return Rokt.events(identifier)
-            .map { event ->
-                when (event) {
-                    is RoktEvent.HideLoadingIndicator -> com.mparticle.RoktEvent.HideLoadingIndicator
-                    is RoktEvent.ShowLoadingIndicator -> com.mparticle.RoktEvent.ShowLoadingIndicator
-                    is RoktEvent.FirstPositiveEngagement -> com.mparticle.RoktEvent.FirstPositiveEngagement(
-                        event.id
-                    )
-                    is RoktEvent.PositiveEngagement -> com.mparticle.RoktEvent.PositiveEngagement(
-                        event.id
-                    )
-                    is RoktEvent.OfferEngagement -> com.mparticle.RoktEvent.OfferEngagement(event.id)
-                    is RoktEvent.OpenUrl -> com.mparticle.RoktEvent.OpenUrl(event.id, event.url)
-                    is RoktEvent.PlacementClosed -> com.mparticle.RoktEvent.PlacementClosed(event.id)
-                    is RoktEvent.PlacementCompleted -> com.mparticle.RoktEvent.PlacementCompleted(
-                        event.id
-                    )
-                    is RoktEvent.PlacementFailure -> com.mparticle.RoktEvent.PlacementFailure(event.id)
-                    is RoktEvent.PlacementInteractive -> com.mparticle.RoktEvent.PlacementInteractive(
-                        event.id
-                    )
-                    is RoktEvent.PlacementReady -> com.mparticle.RoktEvent.PlacementReady(event.id)
-                    is RoktEvent.CartItemInstantPurchase -> com.mparticle.RoktEvent.CartItemInstantPurchase(
-                        placementId = event.placementId,
-                        cartItemId = event.cartItemId,
-                        catalogItemId = event.catalogItemId,
-                        currency = event.currency,
-                        description = event.description,
-                        linkedProductId = event.linkedProductId,
-                        totalPrice = event.totalPrice,
-                        quantity = event.quantity,
-                        unitPrice = event.unitPrice
-                    )
-                    is RoktEvent.InitComplete -> com.mparticle.RoktEvent.InitComplete(event.success)
-                }
-            }
+    override fun events(identifier: String): Flow<com.mparticle.RoktEvent> = Rokt.events(identifier).map { event ->
+        when (event) {
+            is RoktEvent.HideLoadingIndicator -> com.mparticle.RoktEvent.HideLoadingIndicator
+            is RoktEvent.ShowLoadingIndicator -> com.mparticle.RoktEvent.ShowLoadingIndicator
+            is RoktEvent.FirstPositiveEngagement -> com.mparticle.RoktEvent.FirstPositiveEngagement(
+                event.id,
+            )
+
+            is RoktEvent.PositiveEngagement -> com.mparticle.RoktEvent.PositiveEngagement(
+                event.id,
+            )
+
+            is RoktEvent.OfferEngagement -> com.mparticle.RoktEvent.OfferEngagement(event.id)
+            is RoktEvent.OpenUrl -> com.mparticle.RoktEvent.OpenUrl(event.id, event.url)
+            is RoktEvent.PlacementClosed -> com.mparticle.RoktEvent.PlacementClosed(event.id)
+            is RoktEvent.PlacementCompleted -> com.mparticle.RoktEvent.PlacementCompleted(
+                event.id,
+            )
+
+            is RoktEvent.PlacementFailure -> com.mparticle.RoktEvent.PlacementFailure(event.id)
+            is RoktEvent.PlacementInteractive -> com.mparticle.RoktEvent.PlacementInteractive(
+                event.id,
+            )
+
+            is RoktEvent.PlacementReady -> com.mparticle.RoktEvent.PlacementReady(event.id)
+            is RoktEvent.CartItemInstantPurchase -> com.mparticle.RoktEvent.CartItemInstantPurchase(
+                placementId = event.placementId,
+                cartItemId = event.cartItemId,
+                catalogItemId = event.catalogItemId,
+                currency = event.currency,
+                description = event.description,
+                linkedProductId = event.linkedProductId,
+                totalPrice = event.totalPrice,
+                quantity = event.quantity,
+                unitPrice = event.unitPrice,
+            )
+
+            is RoktEvent.InitComplete -> com.mparticle.RoktEvent.InitComplete(event.success)
+        }
     }
 
     override fun setWrapperSdkVersion(wrapperSdkVersion: WrapperSdkVersion) {
@@ -288,15 +285,13 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         val cacheConfig = config.cacheConfig?.cacheDurationInSeconds?.let {
             CacheConfig(
                 cacheDurationInSeconds = it,
-                cacheAttributes = config.cacheConfig?.cacheAttributes
+                cacheAttributes = config.cacheConfig?.cacheAttributes,
             )
         }
 
         val edgeToEdgeDisplay = config.edgeToEdgeDisplay
 
-        val builder = com.rokt.roktsdk.RoktConfig.Builder()
-            .colorMode(colorMode)
-            .edgeToEdgeDisplay(edgeToEdgeDisplay)
+        val builder = com.rokt.roktsdk.RoktConfig.Builder().colorMode(colorMode).edgeToEdgeDisplay(edgeToEdgeDisplay)
 
         cacheConfig?.let {
             builder.cacheConfig(it)
@@ -304,7 +299,10 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         return builder.build()
     }
 
-    private fun addIdentityAttributes(attributes: MutableMap<String, String>?, filterUser: FilteredMParticleUser?): MutableMap<String, String> {
+    private fun addIdentityAttributes(
+        attributes: MutableMap<String, String>?,
+        filterUser: FilteredMParticleUser?,
+    ): MutableMap<String, String> {
         val identityAttributes = mutableMapOf<String, String>()
         if (filterUser != null) {
             for ((identityNumberKey, identityValue) in filterUser.userIdentities) {
@@ -342,32 +340,30 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         }
     }
 
-    private fun getStringForIdentity(identityType: IdentityType): String {
-        return when (identityType) {
-            IdentityType.Other -> "emailsha256"
-            IdentityType.CustomerId -> "customerid"
-            IdentityType.Facebook -> "facebook"
-            IdentityType.Twitter -> "twitter"
-            IdentityType.Google -> "google"
-            IdentityType.Microsoft -> "microsoft"
-            IdentityType.Yahoo -> "yahoo"
-            IdentityType.Email -> "email"
-            IdentityType.Alias -> "alias"
-            IdentityType.FacebookCustomAudienceId -> "facebookcustomaudienceid"
-            IdentityType.Other2 -> "other2"
-            IdentityType.Other3 -> "other3"
-            IdentityType.Other4 -> "other4"
-            IdentityType.Other5 -> "other5"
-            IdentityType.Other6 -> "other6"
-            IdentityType.Other7 -> "other7"
-            IdentityType.Other8 -> "other8"
-            IdentityType.Other9 -> "other9"
-            IdentityType.Other10 -> "other10"
-            IdentityType.MobileNumber -> "mobilenumber"
-            IdentityType.PhoneNumber2 -> "phonenumber2"
-            IdentityType.PhoneNumber3 -> "phonenumber3"
-            else -> ""
-        }
+    private fun getStringForIdentity(identityType: IdentityType): String = when (identityType) {
+        IdentityType.Other -> "emailsha256"
+        IdentityType.CustomerId -> "customerid"
+        IdentityType.Facebook -> "facebook"
+        IdentityType.Twitter -> "twitter"
+        IdentityType.Google -> "google"
+        IdentityType.Microsoft -> "microsoft"
+        IdentityType.Yahoo -> "yahoo"
+        IdentityType.Email -> "email"
+        IdentityType.Alias -> "alias"
+        IdentityType.FacebookCustomAudienceId -> "facebookcustomaudienceid"
+        IdentityType.Other2 -> "other2"
+        IdentityType.Other3 -> "other3"
+        IdentityType.Other4 -> "other4"
+        IdentityType.Other5 -> "other5"
+        IdentityType.Other6 -> "other6"
+        IdentityType.Other7 -> "other7"
+        IdentityType.Other8 -> "other8"
+        IdentityType.Other9 -> "other9"
+        IdentityType.Other10 -> "other10"
+        IdentityType.MobileNumber -> "mobilenumber"
+        IdentityType.PhoneNumber2 -> "phonenumber2"
+        IdentityType.PhoneNumber3 -> "phonenumber3"
+        else -> ""
     }
 
     companion object {
@@ -378,20 +374,19 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
 
-
-    override fun onLoad() : Unit{
+    override fun onLoad() {
         mpRoktEventCallback?.onLoad()
     }
 
-    override fun onShouldHideLoadingIndicator() : Unit {
+    override fun onShouldHideLoadingIndicator() {
         mpRoktEventCallback?.onShouldHideLoadingIndicator()
     }
 
-    override fun onShouldShowLoadingIndicator() : Unit {
+    override fun onShouldShowLoadingIndicator() {
         mpRoktEventCallback?.onShouldShowLoadingIndicator()
     }
 
-    override fun onUnload(reason: Rokt.UnloadReasons) : Unit {
+    override fun onUnload(reason: Rokt.UnloadReasons) {
         mpRoktEventCallback?.onUnload(
             when (reason) {
                 Rokt.UnloadReasons.NO_OFFERS -> UnloadReasons.NO_OFFERS
@@ -402,7 +397,7 @@ class RoktKit : KitIntegration(), CommerceListener, IdentityListener, RoktListen
                 Rokt.UnloadReasons.INIT_FAILED -> UnloadReasons.INIT_FAILED
                 Rokt.UnloadReasons.UNKNOWN_PLACEHOLDER -> UnloadReasons.UNKNOWN_PLACEHOLDER
                 Rokt.UnloadReasons.UNKNOWN -> UnloadReasons.UNKNOWN
-            }
+            },
         )
     }
 }
@@ -411,5 +406,6 @@ fun PackageManager.getPackageInfoForApp(packageName: String, flags: Int = 0): Pa
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(flags.toLong()))
     } else {
-        @Suppress("DEPRECATION") getPackageInfo(packageName, flags)
+        @Suppress("DEPRECATION")
+        getPackageInfo(packageName, flags)
     }
