@@ -6,7 +6,6 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
-import androidx.compose.runtime.Composable
 import com.mparticle.BuildConfig
 import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
@@ -299,7 +298,7 @@ class RoktKit :
         deferredAttributes?.complete(finalAttributes)
     }
 
-    fun ComposableTest(
+    fun runComposableWithCallback(
         attributes: Map<String, String>,
         mpRoktEventCallback: MpRoktEventCallback?,
         onResult: (Map<String, String>, RoktCallback) -> Unit
@@ -407,13 +406,14 @@ class RoktKit :
     }
 
     companion object {
-        private var instance: RoktKit? = null
+        @Volatile
+        var instance: RoktKit? = null
+            private set
 
         fun register(kit: RoktKit) {
             instance = kit
         }
 
-        fun get(): RoktKit? = instance
         const val NAME = "Rokt"
         const val ROKT_ACCOUNT_ID = "accountId"
         const val MPID = "mpid"
