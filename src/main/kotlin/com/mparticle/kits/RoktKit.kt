@@ -293,19 +293,19 @@ class RoktKit :
         Rokt.close()
     }
 
-    override fun callRoktComposable(attributes: MutableMap<String, String>, user: FilteredMParticleUser?) {
+    override fun enrichAttributes(attributes: MutableMap<String, String>, user: FilteredMParticleUser?) {
         val finalAttributes = prepareFinalAttributes(user, attributes)
         deferredAttributes?.complete(finalAttributes)
     }
 
-    fun runComposableWithCallback(
+    suspend fun runComposableWithCallback(
         attributes: Map<String, String>,
         mpRoktEventCallback: MpRoktEventCallback?,
         onResult: (Map<String, String>, RoktCallback) -> Unit
     ) {
         val instance = MParticle.getInstance()
         deferredAttributes = CompletableDeferred()
-        instance?.Internal()?.kitManager?.callExecuteForComposable(attributes)
+        instance?.Internal()?.kitManager?.prepareAttributesAsync(attributes)
         this.mpRoktEventCallback = mpRoktEventCallback
         CoroutineScope(Dispatchers.Default).launch {
             val resultAttributes = deferredAttributes!!.await()
