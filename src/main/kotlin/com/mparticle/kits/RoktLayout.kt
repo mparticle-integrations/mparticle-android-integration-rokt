@@ -9,6 +9,7 @@ import com.mparticle.MpRoktEventCallback
 import com.rokt.roktsdk.Rokt
 
 @Composable
+@Suppress("FunctionName")
 fun RoktLayout(
     sdkTriggered: Boolean,
     viewName: String,
@@ -31,7 +32,8 @@ fun RoktLayout(
             onLoad = { resultMap.callback.onLoad() },
             onShouldShowLoadingIndicator = { resultMap.callback.onShouldShowLoadingIndicator() },
             onShouldHideLoadingIndicator = { resultMap.callback.onShouldHideLoadingIndicator() },
-            onUnload = { reason -> resultMap.callback.onUnload(reason) })
+            onUnload = { reason -> resultMap.callback.onUnload(reason) },
+        )
     }
 }
 

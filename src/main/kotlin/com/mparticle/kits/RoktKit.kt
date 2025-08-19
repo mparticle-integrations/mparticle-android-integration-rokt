@@ -63,10 +63,7 @@ class RoktKit :
 
     private var deferredAttributes: CompletableDeferred<Map<String, String>>? = null
 
-    public override fun onKitCreate(
-        settings: Map<String, String>,
-        ctx: Context
-    ): List<ReportingMessage> {
+    public override fun onKitCreate(settings: Map<String, String>, ctx: Context): List<ReportingMessage> {
         register(this)
         applicationContext = ctx.applicationContext
         val roktTagId = settings[ROKT_ACCOUNT_ID]
@@ -206,13 +203,13 @@ class RoktKit :
             // Pass placeholders and fontTypefaces only if they are not empty or null
             placeholders.takeIf { it?.isNotEmpty() == true },
             fontTypefaces.takeIf { it?.isNotEmpty() == true },
-            roktConfig
+            roktConfig,
         )
     }
 
     private fun prepareFinalAttributes(
         filterUser: FilteredMParticleUser?,
-        attributes: Map<String, String>?
+        attributes: Map<String, String>?,
     ): Map<String, String> {
         val finalAttributes = mutableMapOf<String, String>()
         filterUser?.userAttributes?.let { userAttrs ->
@@ -301,7 +298,7 @@ class RoktKit :
     suspend fun runComposableWithCallback(
         attributes: Map<String, String>,
         mpRoktEventCallback: MpRoktEventCallback?,
-        onResult: (Map<String, String>, RoktCallback) -> Unit
+        onResult: (Map<String, String>, RoktCallback) -> Unit,
     ) {
         val instance = MParticle.getInstance()
         deferredAttributes = CompletableDeferred()
