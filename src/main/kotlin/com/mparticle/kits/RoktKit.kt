@@ -209,7 +209,7 @@ class RoktKit :
 
     private fun prepareFinalAttributes(
         filterUser: FilteredMParticleUser?,
-        attributes: Map<String, String>?,
+        attributes: Map<String, String>,
     ): Map<String, String> {
         val finalAttributes = mutableMapOf<String, String>()
         filterUser?.userAttributes?.let { userAttrs ->
@@ -224,7 +224,7 @@ class RoktKit :
 
         addIdentityAttributes(finalAttributes, filterUser)
 
-        attributes?.get(ROKT_ATTRIBUTE_SANDBOX_MODE)?.let { value ->
+        attributes.get(ROKT_ATTRIBUTE_SANDBOX_MODE)?.let { value ->
             finalAttributes.put(ROKT_ATTRIBUTE_SANDBOX_MODE, value)
         }
         verifyHashedEmail(finalAttributes)
