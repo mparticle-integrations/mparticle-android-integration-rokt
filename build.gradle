@@ -58,7 +58,7 @@ repositories {
 dependencies {
     implementation 'androidx.annotation:annotation:1.5.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
-    api 'com.rokt:roktsdk:4.10.0'
+    api 'com.rokt:roktsdk:4.11.0'
 
     testImplementation  files('libs/java-json.jar')
     testImplementation 'com.squareup.assertj:assertj-android:1.2.0'
