@@ -224,7 +224,7 @@ class RoktKit :
 
         addIdentityAttributes(finalAttributes, filterUser)
 
-        attributes.get(ROKT_ATTRIBUTE_SANDBOX_MODE)?.let { value ->
+        attributes[ROKT_ATTRIBUTE_SANDBOX_MODE]?.let { value ->
             finalAttributes.put(ROKT_ATTRIBUTE_SANDBOX_MODE, value)
         }
         verifyHashedEmail(finalAttributes)

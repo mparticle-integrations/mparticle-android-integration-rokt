@@ -20,10 +20,12 @@ fun RoktLayout(
 ) {
     val instance = RoktKit.instance
     val resultMapState = remember { mutableStateOf<RoktResult?>(null) }
-    LaunchedEffect(Unit) {
-        instance?.runComposableWithCallback(attributes, mpRoktEventCallback, { resultMap, callback ->
-            resultMapState.value = RoktResult(resultMap, callback)
-        })
+    if (sdkTriggered) {
+        LaunchedEffect(Unit) {
+            instance?.runComposableWithCallback(attributes, mpRoktEventCallback, { resultMap, callback ->
+                resultMapState.value = RoktResult(resultMap, callback)
+            })
+        }
     }
 
     resultMapState.value?.let { resultMap ->
