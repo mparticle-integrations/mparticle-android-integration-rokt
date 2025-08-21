@@ -12,7 +12,7 @@ import com.rokt.roktsdk.Rokt
 @Suppress("FunctionName")
 fun RoktLayout(
     sdkTriggered: Boolean,
-    viewName: String,
+    identifier: String,
     attributes: Map<String, String>,
     location: String,
     modifier: Modifier = Modifier,
@@ -30,7 +30,7 @@ fun RoktLayout(
 
     resultMapState.value?.let { resultMap ->
         com.rokt.roktsdk.RoktLayout(
-            sdkTriggered, viewName, modifier, resultMap.attributes, location,
+            sdkTriggered, identifier, modifier, resultMap.attributes, location,
             onLoad = { resultMap.callback.onLoad() },
             onShouldShowLoadingIndicator = { resultMap.callback.onShouldShowLoadingIndicator() },
             onShouldHideLoadingIndicator = { resultMap.callback.onShouldHideLoadingIndicator() },

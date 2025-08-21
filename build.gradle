@@ -12,14 +12,13 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:7.4.1'
         classpath 'com.mparticle:android-kit-plugin:' + project.version
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0'
     }
 }
 
 plugins {
     id "org.sonarqube" version "3.5.0.2730"
     id "org.jlleitschuh.gradle.ktlint" version "11.2.0"
-    id "org.jetbrains.kotlin.plugin.compose" version "2.0.0"
 }
 
 sonarqube {
@@ -35,6 +34,7 @@ apply plugin: "kotlin-android"
 apply plugin: 'com.mparticle.kit'
 
 android {
+    namespace 'com.mparticle.kits.rokt'
     defaultConfig {
         minSdkVersion 21
         consumerProguardFiles 'consumer-proguard.pro'
@@ -52,6 +52,9 @@ android {
     buildFeatures {
         compose true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.0"
+    }
 }
 
 repositories {
@@ -60,18 +63,20 @@ repositories {
 }
 
 dependencies {
+    def composeBom = platform('androidx.compose:compose-bom:2023.10.01')
+    implementation composeBom
     implementation 'androidx.annotation:annotation:1.5.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
-    implementation 'androidx.compose.runtime:runtime-android:1.8.3'
+    implementation 'androidx.compose.runtime:runtime'
     api 'com.rokt:roktsdk:4.11.0'
 
     testImplementation  files('libs/java-json.jar')
     testImplementation 'com.squareup.assertj:assertj-android:1.2.0'
     testImplementation ("io.mockk:mockk:1.13.4")
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4'
-    compileOnly 'androidx.compose.ui:ui:1.0.0'
-    compileOnly 'androidx.compose.material:material:1.0.0'
-    compileOnly 'androidx.compose.ui:ui-tooling:1.0.0'
+    compileOnly 'androidx.compose.ui:ui'
+    compileOnly 'androidx.compose.material:material'
+    compileOnly 'androidx.compose.ui:ui-tooling'
 }
 
 ktlint {
