@@ -19,7 +19,6 @@ buildscript {
 plugins {
     id "org.sonarqube" version "3.5.0.2730"
     id "org.jlleitschuh.gradle.ktlint" version "11.2.0"
-    id "org.jetbrains.kotlin.plugin.compose" version "2.0.0"
 }
 
 sonarqube {
@@ -51,6 +50,9 @@ android {
     }
     buildFeatures {
         compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.2" // or match the app’s version
     }
 }
 
