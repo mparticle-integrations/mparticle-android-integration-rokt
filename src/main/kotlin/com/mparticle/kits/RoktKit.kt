@@ -57,6 +57,7 @@ class RoktKit :
     Rokt.RoktCallback {
     private var applicationContext: Context? = null
     private var mpRoktEventCallback: MpRoktEventCallback? = null
+    private var hashedEmailUserIdentityType: String? = null
     override fun getName(): String = NAME
 
     override fun getInstance(): RoktKit = this
@@ -70,6 +71,7 @@ class RoktKit :
         if (KitUtils.isEmpty(roktTagId)) {
             throwOnKitCreateError(NO_ROKT_ACCOUNT_ID)
         }
+        hashedEmailUserIdentityType = settings[HASHED_EMAIL_USER_IDENTITY_TYPE]
         applicationContext?.let {
             val manager = context.packageManager
             if (roktTagId != null) {
@@ -343,7 +345,11 @@ class RoktKit :
         if (filterUser != null) {
             for ((identityNumberKey, identityValue) in filterUser.userIdentities) {
                 val identityType = getStringForIdentity(identityNumberKey)
-                identityAttributes[identityType] = identityValue
+                if (identityType.equals(hashedEmailUserIdentityType)) {
+                    identityAttributes["emailsha256"] = identityValue
+                } else {
+                    identityAttributes[identityType] = identityValue
+                }
             }
         }
         if (attributes != null) {
@@ -377,28 +383,28 @@ class RoktKit :
     }
 
     private fun getStringForIdentity(identityType: IdentityType): String = when (identityType) {
-        IdentityType.Other -> "emailsha256"
-        IdentityType.CustomerId -> "customerid"
-        IdentityType.Facebook -> "facebook"
-        IdentityType.Twitter -> "twitter"
-        IdentityType.Google -> "google"
-        IdentityType.Microsoft -> "microsoft"
-        IdentityType.Yahoo -> "yahoo"
-        IdentityType.Email -> "email"
-        IdentityType.Alias -> "alias"
-        IdentityType.FacebookCustomAudienceId -> "facebookcustomaudienceid"
-        IdentityType.Other2 -> "other2"
-        IdentityType.Other3 -> "other3"
-        IdentityType.Other4 -> "other4"
-        IdentityType.Other5 -> "other5"
-        IdentityType.Other6 -> "other6"
-        IdentityType.Other7 -> "other7"
-        IdentityType.Other8 -> "other8"
-        IdentityType.Other9 -> "other9"
-        IdentityType.Other10 -> "other10"
-        IdentityType.MobileNumber -> "mobilenumber"
-        IdentityType.PhoneNumber2 -> "phonenumber2"
-        IdentityType.PhoneNumber3 -> "phonenumber3"
+        IdentityType.Other -> "Other"
+        IdentityType.CustomerId -> "CustomerId"
+        IdentityType.Facebook -> "Facebook"
+        IdentityType.Twitter -> "Twitter"
+        IdentityType.Google -> "Google"
+        IdentityType.Microsoft -> "Microsoft"
+        IdentityType.Yahoo -> "Yahoo"
+        IdentityType.Email -> "Email"
+        IdentityType.Alias -> "Alias"
+        IdentityType.FacebookCustomAudienceId -> "FacebookCustomAudienceId"
+        IdentityType.Other2 -> "Other2"
+        IdentityType.Other3 -> "Other3"
+        IdentityType.Other4 -> "Other4"
+        IdentityType.Other5 -> "Other5"
+        IdentityType.Other6 -> "Other6"
+        IdentityType.Other7 -> "Other7"
+        IdentityType.Other8 -> "Other8"
+        IdentityType.Other9 -> "Other9"
+        IdentityType.Other10 -> "Other10"
+        IdentityType.MobileNumber -> "MobileNumber"
+        IdentityType.PhoneNumber2 -> "PhoneNumber2"
+        IdentityType.PhoneNumber3 -> "PhoneNumber3"
         else -> ""
     }
 
@@ -413,6 +419,7 @@ class RoktKit :
 
         const val NAME = "Rokt"
         const val ROKT_ACCOUNT_ID = "accountId"
+        const val HASHED_EMAIL_USER_IDENTITY_TYPE = "hashedEmailUserIdentityType"
         const val MPID = "mpid"
         const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
