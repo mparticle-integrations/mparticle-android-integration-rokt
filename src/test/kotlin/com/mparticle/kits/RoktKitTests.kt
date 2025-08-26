@@ -152,7 +152,6 @@ class RoktKitTests {
         assertTrue(result.containsKey("key1"))
         assertTrue(result.containsKey("key2"))
         assertTrue(result.containsKey("key3"))
-        assertTrue(result.containsKey("email"))
         assertTrue(result.containsKey("Email"))
     }
 
@@ -166,7 +165,6 @@ class RoktKitTests {
             "key1" to "value1",
             "key2" to "value2",
             "key3" to "value3",
-            "email" to "abc@gmail.com",
             "Email" to "abc@gmail.com",
         )
         val method: Method = RoktKit::class.java.getDeclaredMethod(
