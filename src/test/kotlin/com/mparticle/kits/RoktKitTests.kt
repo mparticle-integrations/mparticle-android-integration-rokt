@@ -300,7 +300,7 @@ class RoktKitTests {
     }
 
     @Test
-    fun test_addIdentityAttributes_When_userIdentities_UNASSIGNED_map_To_Identity() {
+    fun test_addIdentityAttributes_When_userIdentities_Unknown_map_To_Identity() {
         val mockFilterUser = mock(FilteredMParticleUser::class.java)
         val userIdentities = HashMap<IdentityType, String>()
         userIdentities.put(IdentityType.Email, "TestEmail@gamil.com")
@@ -313,7 +313,7 @@ class RoktKitTests {
         )
         val hashedField = RoktKit::class.java.getDeclaredField("hashedEmailUserIdentityType")
         hashedField.isAccessible = true
-        hashedField.set(roktKit, "UNASSIGNED")
+        hashedField.set(roktKit, "Unknown")
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "addIdentityAttributes",
             Map::class.java,
@@ -326,8 +326,8 @@ class RoktKitTests {
         assertTrue(result.containsKey("key1"))
         assertTrue(result.containsKey("key2"))
         assertTrue(result.containsKey("key3"))
-        assertTrue(result.containsKey("Email"))
-        assertTrue(result.containsKey("Other"))
+        assertTrue(result.containsKey("email"))
+        assertTrue(result.containsKey("other"))
     }
 
     @Test
