@@ -152,7 +152,7 @@ class RoktKitTests {
         assertTrue(result.containsKey("key1"))
         assertTrue(result.containsKey("key2"))
         assertTrue(result.containsKey("key3"))
-        assertTrue(result.containsKey("Email"))
+        assertTrue(result.containsKey("email"))
     }
 
     @Test
@@ -165,7 +165,7 @@ class RoktKitTests {
             "key1" to "value1",
             "key2" to "value2",
             "key3" to "value3",
-            "Email" to "abc@gmail.com",
+            "email" to "abc@gmail.com",
         )
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "addIdentityAttributes",
@@ -179,13 +179,13 @@ class RoktKitTests {
         assertTrue(result.containsKey("key1"))
         assertTrue(result.containsKey("key2"))
         assertTrue(result.containsKey("key3"))
-        assertTrue(result.containsKey("Email"))
+        assertTrue(result.containsKey("email"))
         assertEquals(
             mapOf(
                 "key1" to "value1",
                 "key2" to "value2",
                 "key3" to "value3",
-                "Email" to "TestEmail@gamil.com",
+                "email" to "TestEmail@gamil.com",
             ),
             result,
         )
@@ -217,7 +217,7 @@ class RoktKitTests {
         method.isAccessible = true
         val result = method.invoke(roktKit, null, mockFilterUser) as Map<String, String>
         assertEquals(1, result.size)
-        assertEquals(mapOf("Email" to "TestEmail@gamil.com"), result)
+        assertEquals(mapOf("email" to "TestEmail@gamil.com"), result)
     }
 
     @Test
@@ -264,8 +264,8 @@ class RoktKitTests {
         assertTrue(result.containsKey("key1"))
         assertTrue(result.containsKey("key2"))
         assertTrue(result.containsKey("key3"))
-        assertTrue(result.containsKey("Email"))
-        assertTrue(result.containsKey("Other"))
+        assertTrue(result.containsKey("email"))
+        assertTrue(result.containsKey("other"))
     }
 
     @Test
@@ -295,8 +295,8 @@ class RoktKitTests {
         assertTrue(result.containsKey("key1"))
         assertTrue(result.containsKey("key2"))
         assertTrue(result.containsKey("key3"))
-        assertTrue(result.containsKey("Email"))
-        assertTrue(result.containsKey("emailsha256"))
+        assertTrue(result.containsKey("email"))
+        assertTrue(result.containsKey("other"))
     }
 
     @Test
