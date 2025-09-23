@@ -57,6 +57,7 @@ class RoktKit :
     Rokt.RoktCallback {
     private var applicationContext: Context? = null
     private var mpRoktEventCallback: MpRoktEventCallback? = null
+    private var hashedEmailUserIdentityType: String? = null
     override fun getName(): String = NAME
 
     override fun getInstance(): RoktKit = this
@@ -70,6 +71,7 @@ class RoktKit :
         if (KitUtils.isEmpty(roktTagId)) {
             throwOnKitCreateError(NO_ROKT_ACCOUNT_ID)
         }
+        hashedEmailUserIdentityType = settings[HASHED_EMAIL_USER_IDENTITY_TYPE]
         applicationContext?.let {
             val manager = context.packageManager
             if (roktTagId != null) {
@@ -343,7 +345,11 @@ class RoktKit :
         if (filterUser != null) {
             for ((identityNumberKey, identityValue) in filterUser.userIdentities) {
                 val identityType = getStringForIdentity(identityNumberKey)
-                identityAttributes[identityType] = identityValue
+                if (identityType.equals(hashedEmailUserIdentityType)) {
+                    identityAttributes["emailsha256"] = identityValue
+                } else {
+                    identityAttributes[identityType] = identityValue
+                }
             }
         }
         if (attributes != null) {
@@ -377,7 +383,7 @@ class RoktKit :
     }
 
     private fun getStringForIdentity(identityType: IdentityType): String = when (identityType) {
-        IdentityType.Other -> "emailsha256"
+        IdentityType.Other -> "other"
         IdentityType.CustomerId -> "customerid"
         IdentityType.Facebook -> "facebook"
         IdentityType.Twitter -> "twitter"
@@ -413,6 +419,7 @@ class RoktKit :
 
         const val NAME = "Rokt"
         const val ROKT_ACCOUNT_ID = "accountId"
+        const val HASHED_EMAIL_USER_IDENTITY_TYPE = "hashedEmailUserIdentityType"
         const val MPID = "mpid"
         const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
