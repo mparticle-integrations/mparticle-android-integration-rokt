@@ -216,7 +216,9 @@ class RoktKit :
         val finalAttributes = mutableMapOf<String, String>()
         filterUser?.userAttributes?.let { userAttrs ->
             for ((key, value) in userAttrs) {
-                finalAttributes[key] = value.toString()
+                if (value != null) {
+                    finalAttributes[key] = value.toString()
+                }
             }
         }
 
