@@ -21,7 +21,6 @@ import com.mparticle.kits.KitIntegration.IdentityListener
 import com.mparticle.kits.KitIntegration.RoktListener
 import com.mparticle.rokt.RoktConfig
 import com.mparticle.rokt.RoktEmbeddedView
-import com.rokt.roktsdk.CacheConfig
 import com.rokt.roktsdk.Rokt
 import com.rokt.roktsdk.Rokt.RoktCallback
 import com.rokt.roktsdk.Rokt.SdkFrameworkType.Android
@@ -197,7 +196,7 @@ class RoktKit :
 
         this.mpRoktEventCallback = mpRoktEventCallback
         val finalAttributes = prepareFinalAttributes(filterUser, attributes)
-        val roktConfig = mpRoktConfig?.let { mapToRoktConfig(it) }
+        val roktConfig = mpRoktConfig?.toRoktSdkConfig()
         Rokt.execute(
             viewName,
             finalAttributes,
@@ -312,30 +311,7 @@ class RoktKit :
         }
     }
 
-    private fun mapToRoktConfig(config: RoktConfig): com.rokt.roktsdk.RoktConfig {
-        val colorMode = when (config.colorMode) {
-            RoktConfig.ColorMode.LIGHT -> com.rokt.roktsdk.RoktConfig.ColorMode.LIGHT
-            RoktConfig.ColorMode.DARK -> com.rokt.roktsdk.RoktConfig.ColorMode.DARK
-            RoktConfig.ColorMode.SYSTEM -> com.rokt.roktsdk.RoktConfig.ColorMode.SYSTEM
-            else -> com.rokt.roktsdk.RoktConfig.ColorMode.SYSTEM
-        }
 
-        val cacheConfig = config.cacheConfig?.cacheDurationInSeconds?.let {
-            CacheConfig(
-                cacheDurationInSeconds = it,
-                cacheAttributes = config.cacheConfig?.cacheAttributes,
-            )
-        }
-
-        val edgeToEdgeDisplay = config.edgeToEdgeDisplay
-
-        val builder = com.rokt.roktsdk.RoktConfig.Builder().colorMode(colorMode).edgeToEdgeDisplay(edgeToEdgeDisplay)
-
-        cacheConfig?.let {
-            builder.cacheConfig(it)
-        }
-        return builder.build()
-    }
 
     private fun addIdentityAttributes(
         attributes: MutableMap<String, String>?,

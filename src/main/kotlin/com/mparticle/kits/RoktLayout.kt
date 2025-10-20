@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.mparticle.MpRoktEventCallback
+import com.mparticle.rokt.RoktConfig
 import com.rokt.roktsdk.Rokt
 
 @Composable
@@ -17,6 +18,7 @@ fun RoktLayout(
     location: String,
     modifier: Modifier = Modifier,
     mpRoktEventCallback: MpRoktEventCallback? = null,
+    config: RoktConfig? = null,
 ) {
     val instance = RoktKit.instance
     val resultMapState = remember { mutableStateOf<RoktResult?>(null) }
@@ -38,6 +40,7 @@ fun RoktLayout(
             onShouldShowLoadingIndicator = { resultMap.callback.onShouldShowLoadingIndicator() },
             onShouldHideLoadingIndicator = { resultMap.callback.onShouldHideLoadingIndicator() },
             onUnload = { reason -> resultMap.callback.onUnload(reason) },
+            config = config?.toRoktSdkConfig(),
         )
     }
 }
