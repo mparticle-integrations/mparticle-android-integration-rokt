@@ -74,6 +74,38 @@ class RoktKitTests {
         // roktKit.configuration = KitConfiguration.createKitConfiguration(JSONObject().put("id", "-1"))
     }
 
+    @Test
+    fun test_prepareFinalAttributes_filters_out_null_user_attributes() {
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
+        Mockito.`when`(mockFilterUser.userIdentities).thenReturn(HashMap())
+
+        // Include a null value and a non-null non-string value to verify toString() behavior
+        val userAttributes = HashMap<String, Any?>()
+        userAttributes["attr_non_null_string"] = "value"
+        userAttributes["attr_null"] = null
+        userAttributes["attr_non_string"] = 123
+        Mockito.`when`(mockFilterUser.userAttributes).thenReturn(userAttributes)
+
+        val method: Method = RoktKit::class.java.getDeclaredMethod(
+            "prepareFinalAttributes",
+            FilteredMParticleUser::class.java,
+            Map::class.java,
+        )
+        method.isAccessible = true
+
+        val inputAttributes: Map<String, String> = emptyMap()
+        val result = method.invoke(roktKit, mockFilterUser, inputAttributes) as Map<*, *>
+
+        // Should include only non-null user attributes, and convert non-string values via toString()
+        assertTrue(result.containsKey("attr_non_null_string"))
+        assertEquals("value", result["attr_non_null_string"])
+
+        assertFalse(result.containsKey("attr_null"))
+
+        assertTrue(result.containsKey("attr_non_string"))
+        assertEquals("123", result["attr_non_string"])
+    }
+
     private inner class TestKitManager :
         KitManagerImpl(context, null, TestCoreCallbacks(), mock(MParticleOptions::class.java)) {
         var attributes = HashMap<String, String>()
