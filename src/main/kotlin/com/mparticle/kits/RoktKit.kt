@@ -198,7 +198,6 @@ class RoktKit :
         this.mpRoktEventCallback = mpRoktEventCallback
         val finalAttributes = prepareFinalAttributes(filterUser, attributes)
         val roktConfig = mpRoktConfig?.toRoktSdkConfig()
-        Log.d("Mansi", "execute:finalAttributes  "+finalAttributes)
         Rokt.execute(
             viewName,
             finalAttributes,
