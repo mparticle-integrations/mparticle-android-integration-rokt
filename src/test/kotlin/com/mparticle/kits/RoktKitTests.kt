@@ -10,6 +10,7 @@ import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
 import com.mparticle.MParticleOptions
 import com.mparticle.MParticleOptions.DataplanOptions
+import com.mparticle.TypedUserAttributeListener
 import com.mparticle.WrapperSdk
 import com.mparticle.WrapperSdkVersion
 import com.mparticle.identity.IdentityApi
@@ -42,6 +43,8 @@ import java.lang.ref.WeakReference
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class RoktKitTests {
     private val context = mockk<Context>(relaxed = true)
@@ -86,17 +89,35 @@ class RoktKitTests {
         userAttributes["attr_non_string"] = 123
         Mockito.`when`(mockFilterUser.userAttributes).thenReturn(userAttributes)
 
+        // Stub getUserAttributes() to immediately call onUserAttributesReceived
+        Mockito.doAnswer { invocation ->
+            val listener = invocation.arguments[0] as TypedUserAttributeListener
+            listener.onUserAttributesReceived(userAttributes, emptyMap(), 123L)
+            null
+        }.`when`(mockFilterUser).getUserAttributes(Mockito.any())
+
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "prepareFinalAttributes",
             FilteredMParticleUser::class.java,
             Map::class.java,
+            Function1::class.java
         )
         method.isAccessible = true
 
         val inputAttributes: Map<String, String> = emptyMap()
-        val result = method.invoke(roktKit, mockFilterUser, inputAttributes) as Map<*, *>
+        val latch = CountDownLatch(1)
+        var callbackResult: Map<String, String>? = null
 
-        // Should include only non-null user attributes, and convert non-string values via toString()
+        val callback = { result: Map<String, String> ->
+            callbackResult = result
+            latch.countDown()
+        }
+
+        method.invoke(roktKit, mockFilterUser, inputAttributes, callback)
+        latch.await(1, TimeUnit.SECONDS)
+
+        val result = callbackResult ?: emptyMap()
+
         assertTrue(result.containsKey("attr_non_null_string"))
         assertEquals("value", result["attr_non_null_string"])
 

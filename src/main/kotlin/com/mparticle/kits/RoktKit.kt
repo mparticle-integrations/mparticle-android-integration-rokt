@@ -6,10 +6,12 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
+import android.util.Log
 import com.mparticle.BuildConfig
 import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
 import com.mparticle.MpRoktEventCallback
+import com.mparticle.TypedUserAttributeListener
 import com.mparticle.UnloadReasons
 import com.mparticle.WrapperSdk
 import com.mparticle.WrapperSdkVersion
@@ -195,43 +197,58 @@ class RoktKit :
         }?.toMap()
 
         this.mpRoktEventCallback = mpRoktEventCallback
-        val finalAttributes = prepareFinalAttributes(filterUser, attributes)
-        val roktConfig = mpRoktConfig?.toRoktSdkConfig()
-        Rokt.execute(
-            viewName,
-            finalAttributes,
-            this,
-            // Pass placeholders and fontTypefaces only if they are not empty or null
-            placeholders.takeIf { it?.isNotEmpty() == true },
-            fontTypefaces.takeIf { it?.isNotEmpty() == true },
-            roktConfig,
-        )
+        prepareFinalAttributes(filterUser, attributes) { finalAttributes ->
+            val roktConfig = mpRoktConfig?.toRoktSdkConfig()
+            Rokt.execute(
+                viewName,
+                finalAttributes,
+                this,
+                // Pass placeholders and fontTypefaces only if they are not empty or null
+                placeholders.takeIf { it?.isNotEmpty() == true },
+                fontTypefaces.takeIf { it?.isNotEmpty() == true },
+                roktConfig,
+            )
+        }
+
     }
 
     private fun prepareFinalAttributes(
         filterUser: FilteredMParticleUser?,
         attributes: Map<String, String>,
-    ): Map<String, String> {
+        onAttributesReady: (Map<String, String>) -> Unit,
+    ) {
         val finalAttributes = mutableMapOf<String, String>()
-        filterUser?.userAttributes?.let { userAttrs ->
-            for ((key, value) in userAttrs) {
-                if (value != null) {
-                    finalAttributes[key] = value.toString()
+        if (filterUser == null) {
+            // If filterUser is null, still process sandbox mode and email verification
+            attributes[ROKT_ATTRIBUTE_SANDBOX_MODE]?.let { finalAttributes[ROKT_ATTRIBUTE_SANDBOX_MODE] = it }
+            verifyHashedEmail(finalAttributes)
+            onAttributesReady(finalAttributes)
+            return
+        }
+        filterUser?.getUserAttributes(
+            object : TypedUserAttributeListener {
+                override fun onUserAttributesReceived(
+                    userAttributes: Map<String, Any?>,
+                    userAttributeLists: Map<String, List<String?>?>,
+                    mpid: Long,
+                ) {
+                    userAttributes.forEach { (key, value) ->
+                        value?.let { finalAttributes[key] = it.toString() }
+                    }
+                    filterUser?.id?.toString()?.let { mpid ->
+                        finalAttributes[MPID] = mpid
+                    } ?: Logger.warning("RoktKit: No user ID available for placement")
+
+                    addIdentityAttributes(finalAttributes, filterUser)
+
+                    attributes[ROKT_ATTRIBUTE_SANDBOX_MODE]?.let { value ->
+                        finalAttributes.put(ROKT_ATTRIBUTE_SANDBOX_MODE, value)
+                    }
+                    verifyHashedEmail(finalAttributes)
+                    onAttributesReady(finalAttributes)
                 }
-            }
-        }
-
-        filterUser?.id?.toString()?.let { mpid ->
-            finalAttributes[MPID] = mpid
-        } ?: Logger.warning("RoktKit: No user ID available for placement")
-
-        addIdentityAttributes(finalAttributes, filterUser)
-
-        attributes[ROKT_ATTRIBUTE_SANDBOX_MODE]?.let { value ->
-            finalAttributes.put(ROKT_ATTRIBUTE_SANDBOX_MODE, value)
-        }
-        verifyHashedEmail(finalAttributes)
-        return finalAttributes
+            },
+        )
     }
 
     override fun events(identifier: String): Flow<com.mparticle.RoktEvent> = Rokt.events(identifier).map { event ->
@@ -294,8 +311,9 @@ class RoktKit :
     }
 
     override fun enrichAttributes(attributes: MutableMap<String, String>, user: FilteredMParticleUser?) {
-        val finalAttributes = prepareFinalAttributes(user, attributes)
-        deferredAttributes?.complete(finalAttributes)
+        val finalAttributes = prepareFinalAttributes(user, attributes){ finalAttributes ->
+            deferredAttributes?.complete(finalAttributes)
+        }
     }
 
     suspend fun runComposableWithCallback(
