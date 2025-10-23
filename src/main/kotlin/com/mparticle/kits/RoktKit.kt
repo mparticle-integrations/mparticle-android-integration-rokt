@@ -213,8 +213,8 @@ class RoktKit :
         filterUser: FilteredMParticleUser?,
         attributes: Map<String, String>,
     ): Map<String, String> {
-        val finalAttributes = mutableMapOf<String, String>()
-        finalAttributes.putAll(attributes)
+        val finalAttributes =filterAttributes(attributes, configuration)
+
         filterUser?.userAttributes?.let { userAttrs ->
             for ((key, value) in userAttrs) {
                 if (value != null) {
@@ -231,6 +231,17 @@ class RoktKit :
 
         verifyHashedEmail(finalAttributes)
         return finalAttributes
+    }
+
+    private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration): MutableMap<String, String> {
+        val userAttributes= mutableMapOf<String, String>()
+        for ((key, value) in attributes) {
+            val hashKey = KitUtils.hashForFiltering(key)
+            if (!kitConfiguration.mAttributeFilters.get(hashKey)) {
+                userAttributes[key] = value
+            }
+        }
+        return userAttributes
     }
 
     override fun events(identifier: String): Flow<com.mparticle.RoktEvent> = Rokt.events(identifier).map { event ->
