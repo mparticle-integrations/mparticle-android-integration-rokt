@@ -213,7 +213,7 @@ class RoktKit :
         filterUser: FilteredMParticleUser?,
         attributes: Map<String, String>,
     ): Map<String, String> {
-        val finalAttributes =filterAttributes(attributes, configuration)
+        val finalAttributes = filterAttributes(attributes, configuration)
 
         filterUser?.userAttributes?.let { userAttrs ->
             for ((key, value) in userAttrs) {
@@ -234,7 +234,7 @@ class RoktKit :
     }
 
     private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration): MutableMap<String, String> {
-        val userAttributes= mutableMapOf<String, String>()
+        val userAttributes = mutableMapOf<String, String>()
         for ((key, value) in attributes) {
             val hashKey = KitUtils.hashForFiltering(key)
             if (!kitConfiguration.mAttributeFilters.get(hashKey)) {
