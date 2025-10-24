@@ -6,7 +6,6 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
-import android.util.Log
 import com.mparticle.BuildConfig
 import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
