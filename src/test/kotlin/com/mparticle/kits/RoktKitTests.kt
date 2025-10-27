@@ -91,14 +91,14 @@ class RoktKitTests {
         val jsonObject = JSONObject()
         try {
             val filteredKey:String =KitUtils.hashForFiltering("ShouldFilter").toString()
-            val allowedKey:String = KitUtils.hashForFiltering("ShouldFilter_key_2").toString()
+            val filteredKey2:String = KitUtils.hashForFiltering("ShouldFilter_key_2").toString()
             jsonObject.put(filteredKey, 0)
-            jsonObject.put(allowedKey, 1)
+            jsonObject.put(filteredKey2, 1)
         } catch (e: Exception) {
             println("Exception occurred: ${e.message}")
         }
         val json = JSONObject()
-        json.put("ea", jsonObject)
+        json.put("ua", jsonObject)
 
 
         roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs",json))
@@ -731,15 +731,15 @@ class RoktKitTests {
         val jsonObject = JSONObject()
         try {
             val filteredKey:String =KitUtils.hashForFiltering("ShouldFilter").toString()
-            val allowedKey:String = KitUtils.hashForFiltering("ShouldFilter_key_2").toString()
+            val filteredKey2:String = KitUtils.hashForFiltering("ShouldFilter_key_2").toString()
             jsonObject.put(filteredKey, 0)
-            jsonObject.put(allowedKey, 1)
+            jsonObject.put(filteredKey2, 1)
         } catch (e: Exception) {
             println("Exception occurred: ${e.message}")
         }
 
         val json = JSONObject()
-        json.put("ea", jsonObject)
+        json.put("ua", jsonObject)
 
 
         roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs",json))
@@ -778,9 +778,9 @@ class RoktKitTests {
         val jsonObject = JSONObject()
         try {
             val filteredKey:String =KitUtils.hashForFiltering("filtered_key").toString()
-            val allowedKey:String = KitUtils.hashForFiltering("allowed_key").toString()
+            val filteredKey2:String = KitUtils.hashForFiltering("allowed_key").toString()
             jsonObject.put(filteredKey, 0)
-            jsonObject.put(allowedKey, 1)
+            jsonObject.put(filteredKey2, 1)
         } catch (e: Exception) {
             println("Exception occurred: ${e.message}")
         }
@@ -822,9 +822,9 @@ class RoktKitTests {
         val jsonObject = JSONObject()
         try {
             val filteredKey:String =KitUtils.hashForFiltering("filtered_key").toString()
-            val allowedKey:String = KitUtils.hashForFiltering("allowed_key").toString()
+            val filteredKey2:String = KitUtils.hashForFiltering("allowed_key").toString()
             jsonObject.put(filteredKey, 0)
-            jsonObject.put(allowedKey, 1)
+            jsonObject.put(filteredKey2, 1)
         } catch (e: Exception) {
             println("Exception occurred: ${e.message}")
         }
@@ -863,15 +863,15 @@ class RoktKitTests {
         val jsonObject = JSONObject()
         try {
             val filteredKey:String =KitUtils.hashForFiltering("Test1").toString()
-            val allowedKey:String = KitUtils.hashForFiltering("Test2").toString()
+            val filteredKey2:String = KitUtils.hashForFiltering("Test2").toString()
             jsonObject.put(filteredKey, 0)
-            jsonObject.put(allowedKey, 1)
+            jsonObject.put(filteredKey2, 1)
         } catch (e: Exception) {
             println("Exception occurred: ${e.message}")
         }
 
         val json = JSONObject()
-        json.put("ea", jsonObject)
+        json.put("us", jsonObject)
 
 
         roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs",json))
