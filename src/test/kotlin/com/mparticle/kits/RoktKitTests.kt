@@ -755,7 +755,7 @@ class RoktKitTests {
     }
 
     @Test
-    fun testFilterAttributes_When_kitConfig_Attributes_IS_NULL() {
+    fun testFilterAttributes_When_kitConfig_User_Attributes_Filtering_IS_NULL() {
         // Create test attributes
         val attributes: Map<String, String> = mapOf(
             "filtered_key" to "filtered_value",
@@ -822,7 +822,7 @@ class RoktKitTests {
     }
 
     @Test
-    fun testFilterAttributes_When_attribute_different_value() {
+    fun testFilterAttributes_Allows_Attributes_To_Be_Set_When_When_Filtered_User_Attributes_Differ() {
         // Create test attributes
         val attributes: Map<String, String> = mapOf(
             "filtered_key" to "filtered_value",
