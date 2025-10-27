@@ -711,7 +711,6 @@ class RoktKitTests {
 
     @Test
     fun testFilterAttributes() {
-
         // Create test attributes
         val attributes: Map<String, String> = mapOf(
             "ShouldFilter" to "shoudl_filter_value",
@@ -741,7 +740,6 @@ class RoktKitTests {
         val json = JSONObject()
         json.put("ua", jsonObject)
 
-
         roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
 
         // Invoke the method and get the result
@@ -758,7 +756,6 @@ class RoktKitTests {
 
     @Test
     fun testFilterAttributes_When_kitConfig_Attributes_IS_NULL() {
-
         // Create test attributes
         val attributes: Map<String, String> = mapOf(
             "filtered_key" to "filtered_value",
@@ -774,21 +771,7 @@ class RoktKitTests {
         )
         method.isAccessible = true
 
-        // Set up the configuration with our test filters
-        val jsonObject = JSONObject()
-        try {
-            val filteredKey: String = KitUtils.hashForFiltering("filtered_key").toString()
-            val filteredKey2: String = KitUtils.hashForFiltering("allowed_key").toString()
-            jsonObject.put(filteredKey, 0)
-            jsonObject.put(filteredKey2, 1)
-        } catch (e: Exception) {
-            println("Exception occurred: ${e.message}")
-        }
-
         val json = JSONObject()
-        //here is invalid json key for filtering
-        json.put("aaa", jsonObject)
-
 
         roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
 
@@ -805,7 +788,6 @@ class RoktKitTests {
 
     @Test
     fun testFilterAttributes_When_Attributes_IS_Empty() {
-
         // Create test attributes
         val emptyAttributes: Map<String, String> = emptyMap()
 
@@ -831,7 +813,6 @@ class RoktKitTests {
         val json = JSONObject()
         json.put("aaa", jsonObject)
 
-
         roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
 
         // Invoke the method and get the result
@@ -842,7 +823,6 @@ class RoktKitTests {
 
     @Test
     fun testFilterAttributes_When_attribute_different_value() {
-
         // Create test attributes
         val attributes: Map<String, String> = mapOf(
             "filtered_key" to "filtered_value",
@@ -871,7 +851,6 @@ class RoktKitTests {
 
         val json = JSONObject()
         json.put("us", jsonObject)
-
 
         roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
 
