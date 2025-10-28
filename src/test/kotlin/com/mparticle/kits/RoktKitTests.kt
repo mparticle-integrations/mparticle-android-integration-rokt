@@ -15,6 +15,7 @@ import com.mparticle.WrapperSdkVersion
 import com.mparticle.identity.IdentityApi
 import com.mparticle.internal.CoreCallbacks
 import com.mparticle.internal.CoreCallbacks.KitListener
+import com.mparticle.kits.mocks.MockKitConfiguration
 import com.rokt.roktsdk.FulfillmentAttributes
 import com.rokt.roktsdk.Rokt
 import com.rokt.roktsdk.RoktEvent
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -85,7 +87,21 @@ class RoktKitTests {
         userAttributes["attr_null"] = null
         userAttributes["attr_non_string"] = 123
         Mockito.`when`(mockFilterUser.userAttributes).thenReturn(userAttributes)
+        // Set up the configuration with our test filters
+        val jsonObject = JSONObject()
+        try {
+            val filteredKey: String = KitUtils.hashForFiltering("ShouldFilter").toString()
+            val filteredKey2: String = KitUtils.hashForFiltering("ShouldFilter_key_2").toString()
+            jsonObject.put(filteredKey, 0)
+            jsonObject.put(filteredKey2, 1)
+        } catch (e: Exception) {
+            println("Exception occurred: ${e.message}")
+        }
+        val json = JSONObject()
+        json.put("ua", jsonObject)
 
+
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "prepareFinalAttributes",
             FilteredMParticleUser::class.java,
@@ -111,9 +127,9 @@ class RoktKitTests {
         var attributes = HashMap<String, String>()
         var result: AttributionResult? = null
         private var error: AttributionError? = null
-        public override fun getIntegrationAttributes(kitIntegration: KitIntegration): Map<String, String> = attributes
+        override fun getIntegrationAttributes(kitIntegration: KitIntegration): Map<String, String> = attributes
 
-        public override fun setIntegrationAttributes(
+        override fun setIntegrationAttributes(
             kitIntegration: KitIntegration,
             integrationAttributes: Map<String, String>,
         ) {
@@ -691,6 +707,165 @@ class RoktKitTests {
 
         assertEquals("user@example.com", attributes["email"])
         assertFalse(attributes.containsKey("emailsha256"))
+    }
+
+    @Test
+    fun testFilterAttributes() {
+        // Create test attributes
+        val attributes: Map<String, String> = mapOf(
+            "ShouldFilter" to "shoudl_filter_value",
+            "ShouldFilter_key_2" to "ShouldFilter_value",
+            "allowed_key" to "allowed_value",
+        )
+
+        // Get the private filterAttributes method using reflection
+        val method: Method = RoktKit::class.java.getDeclaredMethod(
+            "filterAttributes",
+            Map::class.java,
+            KitConfiguration::class.java,
+        )
+        method.isAccessible = true
+
+        // Set up the configuration with our test filters
+        val jsonObject = JSONObject()
+        try {
+            val filteredKey: String = KitUtils.hashForFiltering("ShouldFilter").toString()
+            val filteredKey2: String = KitUtils.hashForFiltering("ShouldFilter_key_2").toString()
+            jsonObject.put(filteredKey, 0)
+            jsonObject.put(filteredKey2, 1)
+        } catch (e: Exception) {
+            println("Exception occurred: ${e.message}")
+        }
+
+        val json = JSONObject()
+        json.put("ua", jsonObject)
+
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
+
+        // Invoke the method and get the result
+        val result = method.invoke(roktKit, attributes, roktKit.configuration) as Map<String, String>
+
+        // Verify the results
+        assertEquals(1, result.size)
+
+        assertFalse(result.containsKey("ShouldFilter"))
+        assertFalse(result.containsKey("ShouldFilter_key_2"))
+        assertTrue(result.containsKey("allowed_key"))
+        assertEquals("allowed_value", result["allowed_key"])
+    }
+
+    @Test
+    fun testFilterAttributes_When_kitConfig_User_Attributes_Filtering_IS_NULL() {
+        // Create test attributes
+        val attributes: Map<String, String> = mapOf(
+            "filtered_key" to "filtered_value",
+            "allowed_key" to "allowed_value",
+            "another_allowed_key" to "another_allowed_value",
+        )
+
+        // Get the private filterAttributes method using reflection
+        val method: Method = RoktKit::class.java.getDeclaredMethod(
+            "filterAttributes",
+            Map::class.java,
+            KitConfiguration::class.java,
+        )
+        method.isAccessible = true
+
+        val json = JSONObject()
+
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
+
+        // Invoke the method and get the result
+        val result = method.invoke(roktKit, attributes, roktKit.configuration) as Map<String, String>
+
+        assertEquals(3, result.size)
+
+        assertTrue(result.containsKey("allowed_key"))
+        assertTrue(result.containsKey("filtered_key"))
+        assertTrue(result.containsKey("another_allowed_key"))
+        assertEquals("another_allowed_value", result["another_allowed_key"])
+    }
+
+    @Test
+    fun testFilterAttributes_When_Attributes_IS_Empty() {
+        // Create test attributes
+        val emptyAttributes: Map<String, String> = emptyMap()
+
+        // Get the private filterAttributes method using reflection
+        val method: Method = RoktKit::class.java.getDeclaredMethod(
+            "filterAttributes",
+            Map::class.java,
+            KitConfiguration::class.java,
+        )
+        method.isAccessible = true
+
+        // Set up the configuration with our test filters
+        val jsonObject = JSONObject()
+        try {
+            val filteredKey: String = KitUtils.hashForFiltering("filtered_key").toString()
+            val filteredKey2: String = KitUtils.hashForFiltering("allowed_key").toString()
+            jsonObject.put(filteredKey, 0)
+            jsonObject.put(filteredKey2, 1)
+        } catch (e: Exception) {
+            println("Exception occurred: ${e.message}")
+        }
+
+        val json = JSONObject()
+        json.put("aaa", jsonObject)
+
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
+
+        // Invoke the method and get the result
+        val result = method.invoke(roktKit, emptyAttributes, roktKit.configuration) as Map<String, String>
+
+        assertEquals(0, result.size)
+    }
+
+    @Test
+    fun testFilterAttributes_Allows_Attributes_To_Be_Set_When_When_Filtered_User_Attributes_Differ() {
+        // Create test attributes
+        val attributes: Map<String, String> = mapOf(
+            "filtered_key" to "filtered_value",
+            "allowed_key" to "allowed_value",
+            "another_allowed_key" to "another_allowed_value",
+        )
+
+        // Get the private filterAttributes method using reflection
+        val method: Method = RoktKit::class.java.getDeclaredMethod(
+            "filterAttributes",
+            Map::class.java,
+            KitConfiguration::class.java,
+        )
+        method.isAccessible = true
+
+        // Set up the configuration with our test filters
+        val jsonObject = JSONObject()
+        try {
+            val filteredKey: String = KitUtils.hashForFiltering("Test1").toString()
+            val filteredKey2: String = KitUtils.hashForFiltering("Test2").toString()
+            jsonObject.put(filteredKey, 0)
+            jsonObject.put(filteredKey2, 1)
+        } catch (e: Exception) {
+            println("Exception occurred: ${e.message}")
+        }
+
+        val json = JSONObject()
+        json.put("us", jsonObject)
+
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
+
+        // Invoke the method and get the result
+        val result = method.invoke(roktKit, attributes, roktKit.configuration) as Map<String, String>
+
+        // Verify the results
+        assertEquals(3, result.size)
+
+        assertTrue(result.containsKey("filtered_key"))
+        assertTrue(result.containsKey("allowed_key"))
+        assertTrue(result.containsKey("another_allowed_key"))
+        assertEquals("another_allowed_value", result["another_allowed_key"])
+        assertEquals("filtered_value", result["filtered_key"])
+        assertEquals("allowed_value", result["allowed_key"])
     }
 
     internal inner class TestCoreCallbacks : CoreCallbacks {

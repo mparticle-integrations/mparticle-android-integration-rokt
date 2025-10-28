@@ -212,7 +212,8 @@ class RoktKit :
         filterUser: FilteredMParticleUser?,
         attributes: Map<String, String>,
     ): Map<String, String> {
-        val finalAttributes = mutableMapOf<String, String>()
+        val finalAttributes = filterAttributes(attributes, configuration)
+
         filterUser?.userAttributes?.let { userAttrs ->
             for ((key, value) in userAttrs) {
                 if (value != null) {
@@ -227,11 +228,19 @@ class RoktKit :
 
         addIdentityAttributes(finalAttributes, filterUser)
 
-        attributes[ROKT_ATTRIBUTE_SANDBOX_MODE]?.let { value ->
-            finalAttributes.put(ROKT_ATTRIBUTE_SANDBOX_MODE, value)
-        }
         verifyHashedEmail(finalAttributes)
         return finalAttributes
+    }
+
+    private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration): MutableMap<String, String> {
+        val userAttributes = mutableMapOf<String, String>()
+        for ((key, value) in attributes) {
+            val hashKey = KitUtils.hashForFiltering(key)
+            if (!kitConfiguration.mUserAttributeFilters.get(hashKey)) {
+                userAttributes[key] = value
+            }
+        }
+        return userAttributes
     }
 
     override fun events(identifier: String): Flow<com.mparticle.RoktEvent> = Rokt.events(identifier).map { event ->
