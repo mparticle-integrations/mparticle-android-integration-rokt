@@ -326,6 +326,65 @@ class RoktKitTests {
         unmockkObject(Rokt)
     }
 
+
+    @Test
+    fun test_prepareFinalAttributes_handlesSameKeysInAttributesAndUserAttributes() {
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
+        Mockito.`when`(mockFilterUser.userIdentities).thenReturn(HashMap())
+
+        // Include a null value and a non-null non-string value to verify toString() behavior
+        val userAttributes = HashMap<String, Any?>()
+        userAttributes["attr_non_null_string"] = "value"
+        userAttributes["attr_null"] = null
+        userAttributes["attr_non_string"] = 123
+        userAttributes["user_key"] = "1231545"
+        Mockito.`when`(mockFilterUser.userAttributes).thenReturn(userAttributes)
+        // Set up the configuration with our test filters
+        val jsonObject = JSONObject()
+        try {
+            val filteredKey: String = KitUtils.hashForFiltering("ShouldFilter").toString()
+            val filteredKey2: String = KitUtils.hashForFiltering("ShouldFilter_key_2").toString()
+            jsonObject.put(filteredKey, 0)
+            jsonObject.put(filteredKey2, 1)
+        } catch (e: Exception) {
+            println("Exception occurred: ${e.message}")
+        }
+        val json = JSONObject()
+        json.put("ua", jsonObject)
+
+
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
+        val method: Method = RoktKit::class.java.getDeclaredMethod(
+            "prepareFinalAttributes",
+            FilteredMParticleUser::class.java,
+            Map::class.java,
+        )
+        method.isAccessible = true
+
+        val inputAttributes: Map<String, String> = mapOf(
+            "key1" to "value1",
+            "key2" to "value2",
+            "key3" to "value3",
+            "user_key" to "2223333",
+        )
+        val result = method.invoke(roktKit, mockFilterUser, inputAttributes) as Map<*, *>
+        assertEquals(7, result.size)
+
+        assertTrue(result.containsKey("user_key"))
+        //It should always use the value from attributes
+        assertEquals("2223333", result["user_key"])
+        assertTrue(result.containsKey("key1"))
+        assertTrue(result.containsKey("key2"))
+        assertTrue(result.containsKey("key3"))
+        assertTrue(result.containsKey("attr_non_null_string"))
+        assertEquals("value", result["attr_non_null_string"])
+
+        assertFalse(result.containsKey("attr_null"))
+
+        assertTrue(result.containsKey("attr_non_string"))
+        assertEquals("123", result["attr_non_string"])
+    }
+
     private inner class TestKitManager :
         KitManagerImpl(context, null, TestCoreCallbacks(), mock(MParticleOptions::class.java)) {
         var attributes = HashMap<String, String>()

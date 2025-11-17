@@ -212,7 +212,7 @@ class RoktKit :
         filterUser: FilteredMParticleUser?,
         attributes: Map<String, String>,
     ): Map<String, String> {
-        val finalAttributes = filterAttributes(attributes, configuration)
+        val finalAttributes = mutableMapOf<String, String>()
 
         filterUser?.userAttributes?.let { userAttrs ->
             for ((key, value) in userAttrs) {
@@ -221,6 +221,8 @@ class RoktKit :
                 }
             }
         }
+
+        finalAttributes.putAll(filterAttributes(attributes, configuration))
 
         filterUser?.id?.toString()?.let { mpid ->
             finalAttributes[MPID] = mpid
