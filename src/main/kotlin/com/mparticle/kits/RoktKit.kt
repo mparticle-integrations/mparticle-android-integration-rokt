@@ -217,7 +217,7 @@ class RoktKit :
         filterUser?.userAttributes?.let { userAttrs ->
             for ((key, value) in userAttrs) {
                 if (value != null) {
-                    finalAttributes[key] = value.toString()
+                    finalAttributes[key] = convertValueToString(value)
                 }
             }
         }
@@ -230,6 +230,16 @@ class RoktKit :
 
         verifyHashedEmail(finalAttributes)
         return finalAttributes
+    }
+
+    private fun convertValueToString(value: Any?): String {
+        return when (value) {
+            is Double -> BigDecimal.valueOf(value).toPlainString()
+            is Long -> BigDecimal.valueOf(value).toPlainString()
+            is Int -> BigDecimal.valueOf(value.toLong()).toPlainString()
+            is Number -> BigDecimal(value.toString()).toPlainString()
+            else -> value.toString()
+        }
     }
 
     private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration): MutableMap<String, String> {
