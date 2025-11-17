@@ -366,6 +366,7 @@ class RoktKitTests {
             "key2" to "value2",
             "key3" to "value3",
             "user_key" to "2223333",
+            "ShouldFilter" to "testData"
         )
         val result = method.invoke(roktKit, mockFilterUser, inputAttributes) as Map<*, *>
         assertEquals(7, result.size)
@@ -373,16 +374,18 @@ class RoktKitTests {
         assertTrue(result.containsKey("user_key"))
         //It should always use the value from attributes
         assertEquals("2223333", result["user_key"])
+        assertEquals("123", result["attr_non_string"])
+        assertEquals("value", result["attr_non_null_string"])
+
+        assertFalse(result.containsKey("ShouldFilter"))
+        assertFalse(result.containsKey("ShouldFilter_key_2"))
+
         assertTrue(result.containsKey("key1"))
         assertTrue(result.containsKey("key2"))
         assertTrue(result.containsKey("key3"))
         assertTrue(result.containsKey("attr_non_null_string"))
-        assertEquals("value", result["attr_non_null_string"])
-
         assertFalse(result.containsKey("attr_null"))
-
         assertTrue(result.containsKey("attr_non_string"))
-        assertEquals("123", result["attr_non_string"])
     }
 
     private inner class TestKitManager :
