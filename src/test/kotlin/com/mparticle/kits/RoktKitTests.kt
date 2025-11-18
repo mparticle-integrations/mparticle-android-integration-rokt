@@ -329,10 +329,24 @@ class RoktKitTests {
 
     @Test
     fun test_prepareFinalAttributes_handlesSameKeysInAttributesAndUserAttributes() {
+        // Arrange
+        mockkObject(Rokt)
+        val capturedAttributesSlot = slot<Map<String, String>>()
+        every {
+            Rokt.execute(
+                any<String>(),
+                capture(capturedAttributesSlot),
+                any<Rokt.RoktCallback>(),
+                null,
+                null,
+                null,
+            )
+        } just runs
+
         val mockFilterUser = mock(FilteredMParticleUser::class.java)
         Mockito.`when`(mockFilterUser.userIdentities).thenReturn(HashMap())
+        Mockito.`when`(mockFilterUser.id).thenReturn(12345L)
 
-        // Include a null value and a non-null non-string value to verify toString() behavior
         val userAttributes = HashMap<String, Any?>()
         userAttributes["attr_non_null_string"] = "value"
         userAttributes["attr_null"] = null
@@ -351,16 +365,7 @@ class RoktKitTests {
         }
         val json = JSONObject()
         json.put("ua", jsonObject)
-
-
         roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
-        val method: Method = RoktKit::class.java.getDeclaredMethod(
-            "prepareFinalAttributes",
-            FilteredMParticleUser::class.java,
-            Map::class.java,
-        )
-        method.isAccessible = true
-
         val inputAttributes: Map<String, String> = mapOf(
             "key1" to "value1",
             "key2" to "value2",
@@ -368,24 +373,33 @@ class RoktKitTests {
             "user_key" to "2223333",
             "ShouldFilter" to "testData"
         )
-        val result = method.invoke(roktKit, mockFilterUser, inputAttributes) as Map<*, *>
-        assertEquals(7, result.size)
+        // Act
+        roktKit.execute(
+            viewName = "test",
+            attributes = inputAttributes,
+            mpRoktEventCallback = null,
+            placeHolders = null,
+            fontTypefaces = null,
+            filterUser = mockFilterUser,
+            mpRoktConfig = null,
+        )
 
-        assertTrue(result.containsKey("user_key"))
-        //It should always use the value from attributes
-        assertEquals("2223333", result["user_key"])
-        assertEquals("123", result["attr_non_string"])
-        assertEquals("value", result["attr_non_null_string"])
+        // Assert
+        val capturedAttributes = capturedAttributesSlot.captured
 
-        assertFalse(result.containsKey("ShouldFilter"))
-        assertFalse(result.containsKey("ShouldFilter_key_2"))
 
-        assertTrue(result.containsKey("key1"))
-        assertTrue(result.containsKey("key2"))
-        assertTrue(result.containsKey("key3"))
-        assertTrue(result.containsKey("attr_non_null_string"))
-        assertFalse(result.containsKey("attr_null"))
-        assertTrue(result.containsKey("attr_non_string"))
+        assertEquals(7, capturedAttributes.size)
+        assertEquals("value", capturedAttributes["attr_non_null_string"])
+        assertEquals("123", capturedAttributes["attr_non_string"])
+        assertEquals("2223333", capturedAttributes["user_key"])
+        assertEquals("value1", capturedAttributes["key1"])
+        assertEquals("value2", capturedAttributes["key2"])
+        assertEquals("value3", capturedAttributes["key3"])
+        assertEquals("12345", capturedAttributes["mpid"])
+
+        assertFalse(capturedAttributes.containsKey("ShouldFilter"))
+        assertFalse(capturedAttributes.containsKey("ShouldFilter_key_2"))
+        unmockkObject(Rokt)
     }
 
     private inner class TestKitManager :
