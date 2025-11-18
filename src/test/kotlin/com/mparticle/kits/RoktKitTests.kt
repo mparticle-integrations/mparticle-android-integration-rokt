@@ -24,6 +24,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
 import io.mockk.verifyOrder
@@ -120,6 +121,209 @@ class RoktKitTests {
 
         assertTrue(result.containsKey("attr_non_string"))
         assertEquals("123", result["attr_non_string"])
+    }
+
+    @Test
+    fun test_prepareFinalAttributes_converts_large_double_without_scientific_notation() {
+        // Arrange
+        mockkObject(Rokt)
+        val capturedAttributesSlot = slot<Map<String, String>>()
+        every {
+            Rokt.execute(
+                any<String>(),
+                capture(capturedAttributesSlot),
+                any<Rokt.RoktCallback>(),
+                null,
+                null,
+                null,
+            )
+        } just runs
+
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
+        Mockito.`when`(mockFilterUser.userIdentities).thenReturn(HashMap())
+        Mockito.`when`(mockFilterUser.id).thenReturn(12345L)
+
+        val userAttributes = HashMap<String, Any?>()
+        // Large Double value that would produce scientific notation with toString()
+        userAttributes["large_double"] = 50352212112.0
+        userAttributes["large_double_negative"] = -50352212112.0
+        userAttributes["double_with_decimal"] = 123.456789
+        userAttributes["double_zero"] = 0.0
+        Mockito.`when`(mockFilterUser.userAttributes).thenReturn(userAttributes)
+
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", JSONObject()))
+
+        // Act
+        val inputAttributes: Map<String, String> = mapOf("initial_attr" to "initial_value")
+        roktKit.execute(
+            viewName = "test_view",
+            attributes = inputAttributes,
+            mpRoktEventCallback = null,
+            placeHolders = null,
+            fontTypefaces = null,
+            filterUser = mockFilterUser,
+            mpRoktConfig = null,
+        )
+
+        // Assert
+        val capturedAttributes = capturedAttributesSlot.captured
+        assertEquals("50352212112", capturedAttributes["large_double"])
+
+        assertEquals("-50352212112", capturedAttributes["large_double_negative"])
+
+        assertTrue(capturedAttributes.containsKey("double_with_decimal"))
+        assertEquals("123.456789", capturedAttributes["double_with_decimal"])
+
+        assertEquals("0.0", capturedAttributes["double_zero"])
+
+        // Verify initial attributes are preserved
+        assertEquals("initial_value", capturedAttributes["initial_attr"])
+
+        unmockkObject(Rokt)
+    }
+
+    @Test
+    fun test_prepareFinalAttributes_converts_long_values() {
+        // Arrange
+        mockkObject(Rokt)
+        val capturedAttributesSlot = slot<Map<String, String>>()
+        every {
+            Rokt.execute(
+                any<String>(),
+                capture(capturedAttributesSlot),
+                any<Rokt.RoktCallback>(),
+                null,
+                null,
+                null,
+            )
+        } just runs
+
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
+        Mockito.`when`(mockFilterUser.userIdentities).thenReturn(HashMap())
+        Mockito.`when`(mockFilterUser.id).thenReturn(12345L)
+
+        val userAttributes = HashMap<String, Any?>()
+        userAttributes["long_value"] = Long.MAX_VALUE // 9223372036854775807L
+        userAttributes["long_negative"] = Long.MIN_VALUE // -9223372036854775808L
+        userAttributes["long_zero"] = 0L
+        Mockito.`when`(mockFilterUser.userAttributes).thenReturn(userAttributes)
+
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", JSONObject()))
+
+        // Act
+        roktKit.execute(
+            viewName = "test_view",
+            attributes = emptyMap(),
+            mpRoktEventCallback = null,
+            placeHolders = null,
+            fontTypefaces = null,
+            filterUser = mockFilterUser,
+            mpRoktConfig = null,
+        )
+
+        // Assert
+        val capturedAttributes = capturedAttributesSlot.captured
+        assertEquals("9223372036854775807", capturedAttributes["long_value"])
+        assertEquals("-9223372036854775808", capturedAttributes["long_negative"])
+        assertEquals("0", capturedAttributes["long_zero"])
+
+        unmockkObject(Rokt)
+    }
+
+    @Test
+    fun test_prepareFinalAttributes_converts_int_values() {
+        // Arrange
+        mockkObject(Rokt)
+        val capturedAttributesSlot = slot<Map<String, String>>()
+        every {
+            Rokt.execute(
+                any<String>(),
+                capture(capturedAttributesSlot),
+                any<Rokt.RoktCallback>(),
+                null,
+                null,
+                null,
+            )
+        } just runs
+
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
+        Mockito.`when`(mockFilterUser.userIdentities).thenReturn(HashMap())
+        Mockito.`when`(mockFilterUser.id).thenReturn(12345L)
+
+        val userAttributes = HashMap<String, Any?>()
+        userAttributes["int_value"] = Int.MAX_VALUE // 2147483647
+        userAttributes["int_negative"] = Int.MIN_VALUE // -2147483648
+        userAttributes["int_zero"] = 0
+        Mockito.`when`(mockFilterUser.userAttributes).thenReturn(userAttributes)
+
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", JSONObject()))
+
+        // Act
+        roktKit.execute(
+            viewName = "test_view",
+            attributes = emptyMap(),
+            mpRoktEventCallback = null,
+            placeHolders = null,
+            fontTypefaces = null,
+            filterUser = mockFilterUser,
+            mpRoktConfig = null,
+        )
+
+        // Assert
+        val capturedAttributes = capturedAttributesSlot.captured
+        assertEquals("2147483647", capturedAttributes["int_value"])
+        assertEquals("-2147483648", capturedAttributes["int_negative"])
+        assertEquals("0", capturedAttributes["int_zero"])
+
+        unmockkObject(Rokt)
+    }
+
+    @Test
+    fun test_prepareFinalAttributes_preserves_string_values() {
+        // Arrange
+        mockkObject(Rokt)
+        val capturedAttributesSlot = slot<Map<String, String>>()
+        every {
+            Rokt.execute(
+                any<String>(),
+                capture(capturedAttributesSlot),
+                any<Rokt.RoktCallback>(),
+                null,
+                null,
+                null,
+            )
+        } just runs
+
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
+        Mockito.`when`(mockFilterUser.userIdentities).thenReturn(HashMap())
+        Mockito.`when`(mockFilterUser.id).thenReturn(12345L)
+
+        val userAttributes = HashMap<String, Any?>()
+        userAttributes["string_value"] = "test_string"
+        userAttributes["string_with_numbers"] = "123abc456"
+        userAttributes["empty_string"] = ""
+        Mockito.`when`(mockFilterUser.userAttributes).thenReturn(userAttributes)
+
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", JSONObject()))
+
+        // Act
+        roktKit.execute(
+            viewName = "test_view",
+            attributes = emptyMap(),
+            mpRoktEventCallback = null,
+            placeHolders = null,
+            fontTypefaces = null,
+            filterUser = mockFilterUser,
+            mpRoktConfig = null,
+        )
+
+        // Assert
+        val capturedAttributes = capturedAttributesSlot.captured
+        assertEquals("test_string", capturedAttributes["string_value"])
+        assertEquals("123abc456", capturedAttributes["string_with_numbers"])
+        assertEquals("", capturedAttributes["empty_string"])
+
+        unmockkObject(Rokt)
     }
 
     private inner class TestKitManager :
