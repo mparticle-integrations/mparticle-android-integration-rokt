@@ -326,6 +326,82 @@ class RoktKitTests {
         unmockkObject(Rokt)
     }
 
+
+    @Test
+    fun test_prepareFinalAttributes_handlesSameKeysInAttributesAndUserAttributes() {
+        // Arrange
+        mockkObject(Rokt)
+        val capturedAttributesSlot = slot<Map<String, String>>()
+        every {
+            Rokt.execute(
+                any<String>(),
+                capture(capturedAttributesSlot),
+                any<Rokt.RoktCallback>(),
+                null,
+                null,
+                null,
+            )
+        } just runs
+
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
+        Mockito.`when`(mockFilterUser.userIdentities).thenReturn(HashMap())
+        Mockito.`when`(mockFilterUser.id).thenReturn(12345L)
+
+        val userAttributes = HashMap<String, Any?>()
+        userAttributes["attr_non_null_string"] = "value"
+        userAttributes["attr_null"] = null
+        userAttributes["attr_non_string"] = 123
+        userAttributes["user_key"] = "1231545"
+        Mockito.`when`(mockFilterUser.userAttributes).thenReturn(userAttributes)
+        // Set up the configuration with our test filters
+        val jsonObject = JSONObject()
+        try {
+            val filteredKey: String = KitUtils.hashForFiltering("ShouldFilter").toString()
+            val filteredKey2: String = KitUtils.hashForFiltering("ShouldFilter_key_2").toString()
+            jsonObject.put(filteredKey, 0)
+            jsonObject.put(filteredKey2, 1)
+        } catch (e: Exception) {
+            println("Exception occurred: ${e.message}")
+        }
+        val json = JSONObject()
+        json.put("ua", jsonObject)
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
+        val inputAttributes: Map<String, String> = mapOf(
+            "key1" to "value1",
+            "key2" to "value2",
+            "key3" to "value3",
+            "user_key" to "2223333",
+            "ShouldFilter" to "testData"
+        )
+        // Act
+        roktKit.execute(
+            viewName = "test",
+            attributes = inputAttributes,
+            mpRoktEventCallback = null,
+            placeHolders = null,
+            fontTypefaces = null,
+            filterUser = mockFilterUser,
+            mpRoktConfig = null,
+        )
+
+        // Assert
+        val capturedAttributes = capturedAttributesSlot.captured
+
+
+        assertEquals(7, capturedAttributes.size)
+        assertEquals("value", capturedAttributes["attr_non_null_string"])
+        assertEquals("123", capturedAttributes["attr_non_string"])
+        assertEquals("2223333", capturedAttributes["user_key"])
+        assertEquals("value1", capturedAttributes["key1"])
+        assertEquals("value2", capturedAttributes["key2"])
+        assertEquals("value3", capturedAttributes["key3"])
+        assertEquals("12345", capturedAttributes["mpid"])
+
+        assertFalse(capturedAttributes.containsKey("ShouldFilter"))
+        assertFalse(capturedAttributes.containsKey("ShouldFilter_key_2"))
+        unmockkObject(Rokt)
+    }
+
     private inner class TestKitManager :
         KitManagerImpl(context, null, TestCoreCallbacks(), mock(MParticleOptions::class.java)) {
         var attributes = HashMap<String, String>()
