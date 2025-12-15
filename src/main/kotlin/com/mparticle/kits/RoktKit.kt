@@ -351,6 +351,15 @@ class RoktKit :
                 }
             }
         }
+        
+        // GAID is only provided if advertising tracking is not limited
+        applicationContext?.let { context ->
+            val adIdInfo = com.mparticle.internal.MPUtility.getAdIdInfo(context)
+            if (adIdInfo != null && adIdInfo.advertiser == com.mparticle.internal.MPUtility.AdIdInfo.Advertiser.GOOGLE) {
+                identityAttributes[IDENTITY_TYPE_GAID] = adIdInfo.id
+            }
+        }
+        
         if (attributes != null) {
             attributes.putAll(identityAttributes)
             return attributes
@@ -420,6 +429,7 @@ class RoktKit :
         const val ROKT_ACCOUNT_ID = "accountId"
         const val HASHED_EMAIL_USER_IDENTITY_TYPE = "hashedEmailUserIdentityType"
         const val MPID = "mpid"
+        const val IDENTITY_TYPE_GAID = "gaid"
         const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }

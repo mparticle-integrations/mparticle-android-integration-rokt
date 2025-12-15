@@ -36,11 +36,15 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.`when`
+import org.mockito.ArgumentMatchers.any as mockitoAny
 import java.lang.ref.WeakReference
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -1146,6 +1150,61 @@ class RoktKitTests {
         assertEquals("another_allowed_value", result["another_allowed_key"])
         assertEquals("filtered_value", result["filtered_key"])
         assertEquals("allowed_value", result["allowed_key"])
+    }
+
+    @Test
+    fun testAddIdentityAttributes_adds_GAID_when_available() {
+        // Test that GAID is added when MPUtility.getAdIdInfo returns valid Google advertiser
+        // Set applicationContext using reflection (required for GAID lookup)
+        val contextField = RoktKit::class.java.getDeclaredField("applicationContext")
+        contextField.isAccessible = true
+        contextField.set(roktKit, context)
+        
+        mockStatic(com.mparticle.internal.MPUtility::class.java).use { mockedMPUtility ->
+            // Create a mock AdIdInfo and set its fields using reflection
+            val mockAdIdInfo = mock(com.mparticle.internal.MPUtility.AdIdInfo::class.java)
+            
+            // Set the id field
+            val idField = com.mparticle.internal.MPUtility.AdIdInfo::class.java.getDeclaredField("id")
+            idField.isAccessible = true
+            idField.set(mockAdIdInfo, "test-gaid-12345")
+            
+            // Set the advertiser field
+            val advertiserField = com.mparticle.internal.MPUtility.AdIdInfo::class.java.getDeclaredField("advertiser")
+            advertiserField.isAccessible = true
+            advertiserField.set(mockAdIdInfo, com.mparticle.internal.MPUtility.AdIdInfo.Advertiser.GOOGLE)
+            
+            mockedMPUtility.`when`<com.mparticle.internal.MPUtility.AdIdInfo> {
+                com.mparticle.internal.MPUtility.getAdIdInfo(mockitoAny(android.content.Context::class.java))
+            }.thenReturn(mockAdIdInfo)
+            
+            val mockFilterUser = mock(FilteredMParticleUser::class.java)
+            val userIdentities = HashMap<IdentityType, String>()
+            userIdentities[IdentityType.Email] = "test@example.com"
+            Mockito.`when`(mockFilterUser.userIdentities).thenReturn(userIdentities)
+
+            val attributes: MutableMap<String, String> = mutableMapOf("existing_key" to "existing_value")
+
+            val method: Method = RoktKit::class.java.getDeclaredMethod(
+                "addIdentityAttributes",
+                MutableMap::class.java,
+                FilteredMParticleUser::class.java,
+            )
+            method.isAccessible = true
+
+            // Act
+            val result = method.invoke(roktKit, attributes, mockFilterUser) as Map<String, String>
+
+            // Assert
+            assertTrue("GAID should be present in result", result.containsKey("gaid"))
+            assertEquals("test-gaid-12345", result["gaid"])
+            
+            // Verify user identities are still added
+            assertEquals("test@example.com", result["email"])
+            
+            // Verify existing attributes are preserved
+            assertEquals("existing_value", result["existing_key"])
+        }
     }
 
     internal inner class TestCoreCallbacks : CoreCallbacks {
