@@ -354,8 +354,8 @@ class RoktKit :
         
         // GAID is only provided if advertising tracking is not limited
         applicationContext?.let { context ->
-            val adIdInfo = com.mparticle.internal.MPUtility.getAdIdInfo(context)
-            if (adIdInfo != null && adIdInfo.advertiser == com.mparticle.internal.MPUtility.AdIdInfo.Advertiser.GOOGLE) {
+            val adIdInfo = MPUtility.getAdIdInfo(context)
+            if (adIdInfo != null && adIdInfo.advertiser == MPUtility.AdIdInfo.Advertiser.GOOGLE) {
                 identityAttributes[IDENTITY_TYPE_GAID] = adIdInfo.id
             }
         }
