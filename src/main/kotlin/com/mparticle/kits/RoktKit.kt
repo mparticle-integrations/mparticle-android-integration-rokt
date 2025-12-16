@@ -38,6 +38,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.math.BigDecimal
+import com.mparticle.internal.MPUtility
+import com.mparticle.internal.MPUtility.AdIdInfo
 
 const val ROKT_ATTRIBUTE_SANDBOX_MODE: String = "sandbox"
 
