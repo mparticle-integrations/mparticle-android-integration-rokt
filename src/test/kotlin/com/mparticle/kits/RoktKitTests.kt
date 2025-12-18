@@ -359,7 +359,7 @@ class RoktKitTests {
             val filteredKey: String = KitUtils.hashForFiltering("ShouldFilter").toString()
             val filteredKey2: String = KitUtils.hashForFiltering("ShouldFilter_key_2").toString()
             jsonObject.put(filteredKey, 0)
-            jsonObject.put(filteredKey2, 1)
+            jsonObject.put(filteredKey2, 0)
         } catch (e: Exception) {
             println("Exception occurred: ${e.message}")
         }
@@ -1012,7 +1012,7 @@ class RoktKitTests {
             val filteredKey: String = KitUtils.hashForFiltering("ShouldFilter").toString()
             val filteredKey2: String = KitUtils.hashForFiltering("ShouldFilter_key_2").toString()
             jsonObject.put(filteredKey, 0)
-            jsonObject.put(filteredKey2, 1)
+            jsonObject.put(filteredKey2, 0)
         } catch (e: Exception) {
             println("Exception occurred: ${e.message}")
         }
