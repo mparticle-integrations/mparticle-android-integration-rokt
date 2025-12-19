@@ -248,7 +248,7 @@ class RoktKit :
         val userAttributes = mutableMapOf<String, String>()
         for ((key, value) in attributes) {
             val hashKey = KitUtils.hashForFiltering(key)
-            if (kitConfiguration.mUserAttributeFilters.get(hashKey,true)) {
+            if (kitConfiguration.mUserAttributeFilters.get(hashKey, true)) {
                 userAttributes[key] = value
             }
         }
