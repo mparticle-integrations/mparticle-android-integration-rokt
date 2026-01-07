@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build.VERSION
 import com.mparticle.AttributionError
 import com.mparticle.AttributionResult
+import com.mparticle.MPEvent
 import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
 import com.mparticle.MParticleOptions
@@ -39,6 +40,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import java.lang.ref.WeakReference
@@ -1280,6 +1282,93 @@ class RoktKitTests {
             modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
             field[null] = newValue
         }
+    }
+    @Test
+    fun test_prepareFinalAttributes_logs_attributes_event() {
+        val mParticleMock = MParticle.getInstance()!!
+        val method: Method = RoktKit::class.java.getDeclaredMethod(
+            "prepareFinalAttributes",
+            FilteredMParticleUser::class.java,
+            Map::class.java,
+        )
+        method.isAccessible = true
+
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
+        Mockito.`when`(mockFilterUser.userIdentities).thenReturn(HashMap())
+        Mockito.`when`(mockFilterUser.id).thenReturn(9876L)
+        val userAttributes = hashMapOf<String, Any?>("user_key" to "user_val")
+        Mockito.`when`(mockFilterUser.userAttributes).thenReturn(userAttributes)
+
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", JSONObject()))
+        val attributes: Map<String, String> = mapOf("attr1" to "val1")
+
+        method.invoke(roktKit, mockFilterUser, attributes)
+
+        val eventCaptor = ArgumentCaptor.forClass(MPEvent::class.java)
+        Mockito.verify(mParticleMock).logEvent(eventCaptor.capture())
+
+        val loggedEvent = eventCaptor.value
+        assertEquals("selectplacements", loggedEvent.eventName)
+        assertEquals(MParticle.EventType.Other, loggedEvent.eventType)
+        assertEquals(
+            mapOf(
+                "user_key" to "user_val",
+                "attr1" to "val1",
+                "mpid" to "9876",
+            ),
+            loggedEvent.customAttributes,
+        )
+    }
+
+    @Test
+    fun test_execute_logsMPEventWhenMParticleInstanceIsNull() {
+        // Arrange
+        mockkObject(Rokt)
+        every {
+            Rokt.execute(
+                any<String>(),
+                any<Map<String, String>>(),
+                any<Rokt.RoktCallback>(),
+                any(),
+                any(),
+                any(),
+            )
+        } just runs
+
+        val mockFilterUser = mock(FilteredMParticleUser::class.java)
+        Mockito.`when`(mockFilterUser.userIdentities).thenReturn(HashMap())
+        Mockito.`when`(mockFilterUser.id).thenReturn(12345L)
+        Mockito.`when`(mockFilterUser.userAttributes).thenReturn(HashMap<String, Any?>())
+
+        roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", JSONObject()))
+
+        val testAttributes = mapOf("key1" to "value1")
+
+        // Set MParticle instance to null
+        MParticle.setInstance(null)
+
+        roktKit.execute(
+            viewName = "test_view",
+            attributes = testAttributes,
+            mpRoktEventCallback = null,
+            placeHolders = null,
+            fontTypefaces = null,
+            filterUser = mockFilterUser,
+            mpRoktConfig = null,
+        )
+
+        verify(exactly = 1) {
+            Rokt.execute(
+                any<String>(),
+                any<Map<String, String>>(),
+                any<Rokt.RoktCallback>(),
+                any(),
+                any(),
+                any(),
+            )
+        }
+
+        unmockkObject(Rokt)
     }
 
     private var emptyCoreCallbacks: CoreCallbacks = object : CoreCallbacks {

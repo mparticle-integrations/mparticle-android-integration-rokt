@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
 import com.mparticle.BuildConfig
+import com.mparticle.MPEvent
 import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
 import com.mparticle.MpRoktEventCallback
@@ -231,6 +232,11 @@ class RoktKit :
         addIdentityAttributes(finalAttributes, filterUser)
 
         verifyHashedEmail(finalAttributes)
+
+        val event = MPEvent.Builder("selectplacements", MParticle.EventType.Other)
+            .customAttributes(finalAttributes)
+            .build()
+        MParticle.getInstance()?.logEvent(event)
         return finalAttributes
     }
 
