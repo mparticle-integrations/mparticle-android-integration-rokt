@@ -233,10 +233,7 @@ class RoktKit :
 
         verifyHashedEmail(finalAttributes)
 
-        val event = MPEvent.Builder("selectplacements", MParticle.EventType.Other)
-            .customAttributes(finalAttributes)
-            .build()
-        MParticle.getInstance()?.logEvent(event)
+        logSelectPlacementEvent(finalAttributes)
         return finalAttributes
     }
 
@@ -386,6 +383,13 @@ class RoktKit :
         }
     }
 
+    private fun logSelectPlacementEvent(attributes: Map<String, String>) {
+        val event = MPEvent.Builder(EVENT_NAME_SELECT_PLACEMENTS, MParticle.EventType.Other)
+            .customAttributes(attributes)
+            .build()
+        MParticle.getInstance()?.logEvent(event)
+    }
+
     private fun getStringForIdentity(identityType: IdentityType): String = when (identityType) {
         IdentityType.Other -> "other"
         IdentityType.CustomerId -> "customerid"
@@ -425,6 +429,7 @@ class RoktKit :
         const val ROKT_ACCOUNT_ID = "accountId"
         const val HASHED_EMAIL_USER_IDENTITY_TYPE = "hashedEmailUserIdentityType"
         const val MPID = "mpid"
+        const val EVENT_NAME_SELECT_PLACEMENTS = "selectplacements"
         const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
