@@ -38,6 +38,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.math.BigDecimal
+import com.mparticle.internal.MPUtility
+import com.mparticle.internal.MPUtility.AdIdInfo
 
 const val ROKT_ATTRIBUTE_SANDBOX_MODE: String = "sandbox"
 
@@ -351,6 +353,15 @@ class RoktKit :
                 }
             }
         }
+        
+        // GAID is only provided if advertising tracking is not limited
+        applicationContext?.let { context ->
+            val adIdInfo = MPUtility.getAdIdInfo(context)
+            if (adIdInfo != null && adIdInfo.advertiser == MPUtility.AdIdInfo.Advertiser.GOOGLE) {
+                identityAttributes[IDENTITY_TYPE_GAID] = adIdInfo.id
+            }
+        }
+        
         if (attributes != null) {
             attributes.putAll(identityAttributes)
             return attributes
@@ -420,6 +431,7 @@ class RoktKit :
         const val ROKT_ACCOUNT_ID = "accountId"
         const val HASHED_EMAIL_USER_IDENTITY_TYPE = "hashedEmailUserIdentityType"
         const val MPID = "mpid"
+        const val IDENTITY_TYPE_GAID = "gaid"
         const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
