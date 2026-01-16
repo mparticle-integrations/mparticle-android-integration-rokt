@@ -41,7 +41,7 @@ open class MockKitConfiguration : KitConfiguration() {
         override fun get(key: Int, valueIfKeyNotFound: Boolean): Boolean {
             print("SparseArray getting: $key")
             return if (map.containsKey(key)) {
-                true
+                map[key] ?: valueIfKeyNotFound
             } else {
                 valueIfKeyNotFound
             }
