@@ -2,12 +2,12 @@ package com.mparticle.kits
 
 import com.mparticle.rokt.CacheConfig
 import com.mparticle.rokt.RoktConfig
-import com.rokt.roktsdk.RoktConfig as SdkRoktConfig
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
-import org.junit.Test
 import org.junit.Assert.assertNotNull
+import org.junit.Test
+import com.rokt.roktsdk.RoktConfig as SdkRoktConfig
 
 class RoktConfigExtensionsTest {
 

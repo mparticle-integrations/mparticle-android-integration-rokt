@@ -234,17 +234,18 @@ class RoktKit :
         return finalAttributes
     }
 
-    private fun convertValueToString(value: Any?): String {
-        return when (value) {
-            is Double -> BigDecimal.valueOf(value).toPlainString()
-            is Long -> BigDecimal.valueOf(value).toPlainString()
-            is Int -> BigDecimal.valueOf(value.toLong()).toPlainString()
-            is Number -> BigDecimal(value.toString()).toPlainString()
-            else -> value.toString()
-        }
+    private fun convertValueToString(value: Any?): String = when (value) {
+        is Double -> BigDecimal.valueOf(value).toPlainString()
+        is Long -> BigDecimal.valueOf(value).toPlainString()
+        is Int -> BigDecimal.valueOf(value.toLong()).toPlainString()
+        is Number -> BigDecimal(value.toString()).toPlainString()
+        else -> value.toString()
     }
 
-    private fun filterAttributes(attributes: Map<String, String>, kitConfiguration: KitConfiguration): MutableMap<String, String> {
+    private fun filterAttributes(
+        attributes: Map<String, String>,
+        kitConfiguration: KitConfiguration,
+    ): MutableMap<String, String> {
         val userAttributes = mutableMapOf<String, String>()
         for ((key, value) in attributes) {
             val hashKey = KitUtils.hashForFiltering(key)
@@ -333,8 +334,6 @@ class RoktKit :
             onResult(resultAttributes, this@RoktKit)
         }
     }
-
-
 
     private fun addIdentityAttributes(
         attributes: MutableMap<String, String>?,

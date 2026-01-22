@@ -101,7 +101,6 @@ class RoktKitTests {
         val json = JSONObject()
         json.put("ua", jsonObject)
 
-
         roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", json))
         val method: Method = RoktKit::class.java.getDeclaredMethod(
             "prepareFinalAttributes",
@@ -326,7 +325,6 @@ class RoktKitTests {
         unmockkObject(Rokt)
     }
 
-
     @Test
     fun test_prepareFinalAttributes_handlesSameKeysInAttributesAndUserAttributes() {
         // Arrange
@@ -371,7 +369,7 @@ class RoktKitTests {
             "key2" to "value2",
             "key3" to "value3",
             "user_key" to "2223333",
-            "ShouldFilter" to "testData"
+            "ShouldFilter" to "testData",
         )
         // Act
         roktKit.execute(
@@ -386,7 +384,6 @@ class RoktKitTests {
 
         // Assert
         val capturedAttributes = capturedAttributesSlot.captured
-
 
         assertEquals(7, capturedAttributes.size)
         assertEquals("value", capturedAttributes["attr_non_null_string"])
