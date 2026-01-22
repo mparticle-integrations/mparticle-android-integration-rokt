@@ -25,7 +25,8 @@ fun RoktLayout(
     if (sdkTriggered) {
         LaunchedEffect(Unit) {
             instance?.runComposableWithCallback(
-                HashMap(attributes), mpRoktEventCallback,
+                HashMap(attributes),
+                mpRoktEventCallback,
                 { resultMap, callback ->
                     resultMapState.value = RoktResult(resultMap, callback)
                 },

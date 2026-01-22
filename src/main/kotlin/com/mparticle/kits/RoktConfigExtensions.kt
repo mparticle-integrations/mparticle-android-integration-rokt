@@ -1,8 +1,8 @@
 package com.mparticle.kits
 
 import com.mparticle.rokt.RoktConfig
-import com.mparticle.rokt.CacheConfig as MpCacheConfig
 import com.rokt.roktsdk.CacheConfig
+import com.mparticle.rokt.CacheConfig as MpCacheConfig
 import com.rokt.roktsdk.RoktConfig as RoktSdkConfig
 
 fun MpCacheConfig.toRoktSdkCacheConfig(): CacheConfig = CacheConfig(
