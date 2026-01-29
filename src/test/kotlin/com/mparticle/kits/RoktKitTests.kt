@@ -1283,6 +1283,7 @@ class RoktKitTests {
             field[null] = newValue
         }
     }
+
     @Test
     fun test_prepareFinalAttributes_logs_attributes_event() {
         val mParticleMock = MParticle.getInstance()!!
@@ -1308,7 +1309,7 @@ class RoktKitTests {
         Mockito.verify(mParticleMock).logEvent(eventCaptor.capture())
 
         val loggedEvent = eventCaptor.value
-        assertEquals("selectplacements", loggedEvent.eventName)
+        assertEquals("selectPlacements", loggedEvent.eventName)
         assertEquals(MParticle.EventType.Other, loggedEvent.eventType)
         assertEquals(
             mapOf(
