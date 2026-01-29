@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
 import com.mparticle.BuildConfig
+import com.mparticle.MPEvent
 import com.mparticle.MParticle
 import com.mparticle.MParticle.IdentityType
 import com.mparticle.MpRoktEventCallback
@@ -231,6 +232,8 @@ class RoktKit :
         addIdentityAttributes(finalAttributes, filterUser)
 
         verifyHashedEmail(finalAttributes)
+
+        logSelectPlacementEvent(finalAttributes)
         return finalAttributes
     }
 
@@ -380,6 +383,13 @@ class RoktKit :
         }
     }
 
+    private fun logSelectPlacementEvent(attributes: Map<String, String>) {
+        val event = MPEvent.Builder(EVENT_NAME_SELECT_PLACEMENTS, MParticle.EventType.Other)
+            .customAttributes(attributes)
+            .build()
+        MParticle.getInstance()?.logEvent(event)
+    }
+
     private fun getStringForIdentity(identityType: IdentityType): String = when (identityType) {
         IdentityType.Other -> "other"
         IdentityType.CustomerId -> "customerid"
@@ -419,6 +429,7 @@ class RoktKit :
         const val ROKT_ACCOUNT_ID = "accountId"
         const val HASHED_EMAIL_USER_IDENTITY_TYPE = "hashedEmailUserIdentityType"
         const val MPID = "mpid"
+        const val EVENT_NAME_SELECT_PLACEMENTS = "selectPlacements"
         const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
