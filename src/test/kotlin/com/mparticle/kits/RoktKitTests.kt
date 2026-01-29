@@ -443,7 +443,7 @@ class RoktKitTests {
             "key2" to "value2",
             "key3" to "value3",
             "user_key" to "2223333",
-            "ShouldFilter" to "testData"
+            "ShouldFilter" to "testData",
         )
         // Act
         roktKit.execute(
@@ -458,7 +458,6 @@ class RoktKitTests {
 
         // Assert
         val capturedAttributes = capturedAttributesSlot.captured
-
 
         assertEquals(8, capturedAttributes.size)
         assertEquals("value", capturedAttributes["attr_non_null_string"])
