@@ -1372,6 +1372,29 @@ class RoktKitTests {
         unmockkObject(Rokt)
     }
 
+    @Test
+    fun testSetSessionId_delegatesToRoktSdk() {
+        mockkObject(Rokt)
+        every { Rokt.setSessionId(any()) } just runs
+
+        roktKit.setSessionId("test-session-id")
+
+        verify { Rokt.setSessionId("test-session-id") }
+        unmockkObject(Rokt)
+    }
+
+    @Test
+    fun testGetSessionId_returnsValueFromRoktSdk() {
+        mockkObject(Rokt)
+        every { Rokt.getSessionId() } returns "expected-session-id"
+
+        val result = roktKit.getSessionId()
+
+        assertEquals("expected-session-id", result)
+        verify { Rokt.getSessionId() }
+        unmockkObject(Rokt)
+    }
+
     private var emptyCoreCallbacks: CoreCallbacks = object : CoreCallbacks {
         var activity = Activity()
         override fun isBackgrounded(): Boolean = false
