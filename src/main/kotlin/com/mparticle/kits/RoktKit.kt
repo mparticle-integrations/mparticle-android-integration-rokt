@@ -20,6 +20,7 @@ import com.mparticle.internal.Logger
 import com.mparticle.kits.KitIntegration.CommerceListener
 import com.mparticle.kits.KitIntegration.IdentityListener
 import com.mparticle.kits.KitIntegration.RoktListener
+import com.mparticle.rokt.PlacementOptions
 import com.mparticle.rokt.RoktConfig
 import com.mparticle.rokt.RoktEmbeddedView
 import com.rokt.roktsdk.Rokt
@@ -174,6 +175,7 @@ class RoktKit :
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
         filterUser: FilteredMParticleUser?,
         mpRoktConfig: RoktConfig?,
+        placementOptions: PlacementOptions?,
     ) {
         val placeholders: Map<String, WeakReference<Widget>>? = placeHolders?.mapNotNull { entry ->
             val widget = Widget(entry.value.get()?.context as Context)
@@ -198,6 +200,7 @@ class RoktKit :
         this.mpRoktEventCallback = mpRoktEventCallback
         val finalAttributes = prepareFinalAttributes(filterUser, attributes)
         val roktConfig = mpRoktConfig?.toRoktSdkConfig()
+        // TODO: propagate the `placementOptions` to Rokt SDK after the  API changes are available
         Rokt.execute(
             viewName,
             finalAttributes,
