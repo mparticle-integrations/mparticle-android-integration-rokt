@@ -200,7 +200,6 @@ class RoktKit :
         this.mpRoktEventCallback = mpRoktEventCallback
         val finalAttributes = prepareFinalAttributes(filterUser, attributes)
         val roktConfig = mpRoktConfig?.toRoktSdkConfig()
-        // TODO: propagate the `placementOptions` to Rokt SDK after the  API changes are available
         Rokt.execute(
             viewName,
             finalAttributes,
@@ -209,6 +208,7 @@ class RoktKit :
             placeholders.takeIf { it?.isNotEmpty() == true },
             fontTypefaces.takeIf { it?.isNotEmpty() == true },
             roktConfig,
+            placementOptions?.toRoktSdkPlacementOptions(),
         )
     }
 
@@ -351,7 +351,7 @@ class RoktKit :
     ) {
         val instance = MParticle.getInstance()
         deferredAttributes = CompletableDeferred()
-        instance?.Internal()?.kitManager?.prepareAttributesAsync(attributes)
+        instance?.Internal()?.kitManager?.roktKitApi?.prepareAttributesAsync(attributes)
         this.mpRoktEventCallback = mpRoktEventCallback
         CoroutineScope(Dispatchers.Default).launch {
             val resultAttributes = deferredAttributes!!.await()

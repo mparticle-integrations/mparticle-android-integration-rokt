@@ -164,6 +164,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         // Assert
@@ -220,6 +221,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         // Assert
@@ -268,6 +270,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         // Assert
@@ -316,6 +319,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         // Assert
@@ -382,6 +386,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         // Assert
@@ -456,6 +461,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         // Assert
@@ -1356,6 +1362,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         verify(exactly = 1) {

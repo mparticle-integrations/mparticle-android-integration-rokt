@@ -43,7 +43,6 @@ fun RoktLayout(
     }
 
     resultMapState.value?.let { resultMap ->
-        // TODO: Propagate the `placementOptions` to Rokt SDK after the  API changes are available
         RoktLayout(
             sdkTriggered, identifier, modifier, resultMap.attributes, location,
             onLoad = { resultMap.callback.onLoad() },
@@ -51,6 +50,7 @@ fun RoktLayout(
             onShouldHideLoadingIndicator = { resultMap.callback.onShouldHideLoadingIndicator() },
             onUnload = { reason -> resultMap.callback.onUnload(reason) },
             config = config?.toRoktSdkConfig(),
+            placementOptions = placementOptions?.toRoktSdkPlacementOptions(),
         )
     }
 }

@@ -32,8 +32,7 @@ fun RoktConfig.toRoktSdkConfig(): RoktSdkConfig {
     return builder.build()
 }
 
-// TODO: Update the mapping
-/*fun PlacementOptions.toRoktSdkPlacementOptions(): com.rokt.roktsdk.PlacementOptions = com.rokt.roktsdk.PlacementOptions(
+fun PlacementOptions.toRoktSdkPlacementOptions(): com.rokt.roktsdk.PlacementOptions = com.rokt.roktsdk.PlacementOptions(
     jointSdkSelectPlacements = this.jointSdkSelectPlacements,
     dynamicPerformanceMarkers = this.dynamicPerformanceMarkers,
-)*/
+)
