@@ -29,7 +29,7 @@ fun RoktLayout(
         // Capture the timestamp when the SDK is triggered
         placementOptions = PlacementOptions(
             jointSdkSelectPlacements = System.currentTimeMillis(),
-            dynamicPerformanceMarkers = mutableMapOf(),
+            dynamicPerformanceMarkers = mapOf(),
         )
         LaunchedEffect(Unit) {
             instance?.runComposableWithCallback(
