@@ -167,7 +167,7 @@ class RoktKit :
       For more details, visit the official documentation:
      https://docs.rokt.com/developers/integration-guides/android/how-to/adding-a-placement/
      */
-    override fun execute(
+    override fun selectPlacements(
         viewName: String,
         attributes: Map<String, String>,
         mpRoktEventCallback: MpRoktEventCallback?,

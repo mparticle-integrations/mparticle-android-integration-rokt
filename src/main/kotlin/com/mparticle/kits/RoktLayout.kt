@@ -9,7 +9,6 @@ import com.mparticle.MpRoktEventCallback
 import com.mparticle.rokt.PlacementOptions
 import com.mparticle.rokt.RoktConfig
 import com.rokt.roktsdk.Rokt
-import com.rokt.roktsdk.RoktLayout
 
 @Composable
 @Suppress("FunctionName")
@@ -43,7 +42,7 @@ fun RoktLayout(
     }
 
     resultMapState.value?.let { resultMap ->
-        RoktLayout(
+        com.rokt.roktsdk.RoktLayout(
             sdkTriggered, identifier, modifier, resultMap.attributes, location,
             onLoad = { resultMap.callback.onLoad() },
             onShouldShowLoadingIndicator = { resultMap.callback.onShouldShowLoadingIndicator() },
