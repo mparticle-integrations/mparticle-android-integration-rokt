@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.mparticle.MpRoktEventCallback
+import com.mparticle.rokt.PlacementOptions
 import com.mparticle.rokt.RoktConfig
 import com.rokt.roktsdk.Rokt
 
@@ -20,9 +21,15 @@ fun RoktLayout(
     mpRoktEventCallback: MpRoktEventCallback? = null,
     config: RoktConfig? = null,
 ) {
+    var placementOptions: PlacementOptions? = null
     val instance = RoktKit.instance
     val resultMapState = remember { mutableStateOf<RoktResult?>(null) }
     if (sdkTriggered) {
+        // Capture the timestamp when the SDK is triggered
+        placementOptions = PlacementOptions(
+            jointSdkSelectPlacements = System.currentTimeMillis(),
+            dynamicPerformanceMarkers = mapOf(),
+        )
         LaunchedEffect(Unit) {
             instance?.runComposableWithCallback(
                 HashMap(attributes),
@@ -42,6 +49,7 @@ fun RoktLayout(
             onShouldHideLoadingIndicator = { resultMap.callback.onShouldHideLoadingIndicator() },
             onUnload = { reason -> resultMap.callback.onUnload(reason) },
             config = config?.toRoktSdkConfig(),
+            placementOptions = placementOptions?.toRoktSdkPlacementOptions(),
         )
     }
 }

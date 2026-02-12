@@ -20,6 +20,7 @@ import com.mparticle.internal.Logger
 import com.mparticle.kits.KitIntegration.CommerceListener
 import com.mparticle.kits.KitIntegration.IdentityListener
 import com.mparticle.kits.KitIntegration.RoktListener
+import com.mparticle.rokt.PlacementOptions
 import com.mparticle.rokt.RoktConfig
 import com.mparticle.rokt.RoktEmbeddedView
 import com.rokt.roktsdk.Rokt
@@ -166,7 +167,7 @@ class RoktKit :
       For more details, visit the official documentation:
      https://docs.rokt.com/developers/integration-guides/android/how-to/adding-a-placement/
      */
-    override fun execute(
+    override fun selectPlacements(
         viewName: String,
         attributes: Map<String, String>,
         mpRoktEventCallback: MpRoktEventCallback?,
@@ -174,6 +175,7 @@ class RoktKit :
         fontTypefaces: MutableMap<String, WeakReference<Typeface>>?,
         filterUser: FilteredMParticleUser?,
         mpRoktConfig: RoktConfig?,
+        placementOptions: PlacementOptions?,
     ) {
         val placeholders: Map<String, WeakReference<Widget>>? = placeHolders?.mapNotNull { entry ->
             val widget = Widget(entry.value.get()?.context as Context)
@@ -206,6 +208,7 @@ class RoktKit :
             placeholders.takeIf { it?.isNotEmpty() == true },
             fontTypefaces.takeIf { it?.isNotEmpty() == true },
             roktConfig,
+            placementOptions?.toRoktSdkPlacementOptions(),
         )
     }
 
@@ -348,7 +351,7 @@ class RoktKit :
     ) {
         val instance = MParticle.getInstance()
         deferredAttributes = CompletableDeferred()
-        instance?.Internal()?.kitManager?.prepareAttributesAsync(attributes)
+        instance?.Internal()?.kitManager?.roktKitApi?.prepareAttributesAsync(attributes)
         this.mpRoktEventCallback = mpRoktEventCallback
         CoroutineScope(Dispatchers.Default).launch {
             val resultAttributes = deferredAttributes!!.await()

@@ -1,5 +1,6 @@
 package com.mparticle.kits
 
+import com.mparticle.rokt.PlacementOptions
 import com.mparticle.rokt.RoktConfig
 import com.rokt.roktsdk.CacheConfig
 import com.mparticle.rokt.CacheConfig as MpCacheConfig
@@ -30,3 +31,8 @@ fun RoktConfig.toRoktSdkConfig(): RoktSdkConfig {
 
     return builder.build()
 }
+
+fun PlacementOptions.toRoktSdkPlacementOptions(): com.rokt.roktsdk.PlacementOptions = com.rokt.roktsdk.PlacementOptions(
+    jointSdkSelectPlacements = this.jointSdkSelectPlacements,
+    dynamicPerformanceMarkers = this.dynamicPerformanceMarkers,
+)

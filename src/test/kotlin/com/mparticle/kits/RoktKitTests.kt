@@ -156,7 +156,7 @@ class RoktKitTests {
 
         // Act
         val inputAttributes: Map<String, String> = mapOf("initial_attr" to "initial_value")
-        roktKit.execute(
+        roktKit.selectPlacements(
             viewName = "test_view",
             attributes = inputAttributes,
             mpRoktEventCallback = null,
@@ -164,6 +164,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         // Assert
@@ -212,7 +213,7 @@ class RoktKitTests {
         roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", JSONObject()))
 
         // Act
-        roktKit.execute(
+        roktKit.selectPlacements(
             viewName = "test_view",
             attributes = emptyMap(),
             mpRoktEventCallback = null,
@@ -220,6 +221,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         // Assert
@@ -260,7 +262,7 @@ class RoktKitTests {
         roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", JSONObject()))
 
         // Act
-        roktKit.execute(
+        roktKit.selectPlacements(
             viewName = "test_view",
             attributes = emptyMap(),
             mpRoktEventCallback = null,
@@ -268,6 +270,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         // Assert
@@ -308,7 +311,7 @@ class RoktKitTests {
         roktKit.configuration = MockKitConfiguration.createKitConfiguration(JSONObject().put("hs", JSONObject()))
 
         // Act
-        roktKit.execute(
+        roktKit.selectPlacements(
             viewName = "test_view",
             attributes = emptyMap(),
             mpRoktEventCallback = null,
@@ -316,6 +319,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         // Assert
@@ -374,7 +378,7 @@ class RoktKitTests {
             "ShouldFilter" to "testData",
         )
         // Act
-        roktKit.execute(
+        roktKit.selectPlacements(
             viewName = "test",
             attributes = inputAttributes,
             mpRoktEventCallback = null,
@@ -382,6 +386,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         // Assert
@@ -448,7 +453,7 @@ class RoktKitTests {
             "ShouldFilter" to "testData",
         )
         // Act
-        roktKit.execute(
+        roktKit.selectPlacements(
             viewName = "test",
             attributes = inputAttributes,
             mpRoktEventCallback = null,
@@ -456,6 +461,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         // Assert
@@ -1348,7 +1354,7 @@ class RoktKitTests {
         // Set MParticle instance to null
         MParticle.setInstance(null)
 
-        roktKit.execute(
+        roktKit.selectPlacements(
             viewName = "test_view",
             attributes = testAttributes,
             mpRoktEventCallback = null,
@@ -1356,6 +1362,7 @@ class RoktKitTests {
             fontTypefaces = null,
             filterUser = mockFilterUser,
             mpRoktConfig = null,
+            placementOptions = null,
         )
 
         verify(exactly = 1) {
