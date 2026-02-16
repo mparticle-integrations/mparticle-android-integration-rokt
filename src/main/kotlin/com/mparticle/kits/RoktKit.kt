@@ -32,6 +32,7 @@ import com.rokt.roktsdk.Rokt.SdkFrameworkType.ReactNative
 import com.rokt.roktsdk.RoktEvent
 import com.rokt.roktsdk.RoktWidgetDimensionCallBack
 import com.rokt.roktsdk.Widget
+import com.rokt.roktsdk.logging.RoktLogLevel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -85,6 +86,9 @@ class RoktKit :
                     val roktOptions = kitManager?.roktOptions
                     val fontFilePathMap = roktOptions?.fontFilePathMap ?: emptyMap()
                     val fontPostScriptNames = roktOptions?.fontPostScriptNames ?: emptySet()
+
+                    val mappedLogLevel = Logger.getMinLogLevel().toRoktLogLevel()
+                    Rokt.setLogLevel(mappedLogLevel)
 
                     Rokt.init(
                         roktTagId = roktTagId,
@@ -159,6 +163,15 @@ class RoktKit :
 
     private fun logError(message: String, t: Throwable) {
         Logger.error(t, "RoktKit: $message")
+    }
+
+    private fun MParticle.LogLevel.toRoktLogLevel(): RoktLogLevel = when (this) {
+        MParticle.LogLevel.VERBOSE -> RoktLogLevel.VERBOSE
+        MParticle.LogLevel.DEBUG -> RoktLogLevel.DEBUG
+        MParticle.LogLevel.INFO -> RoktLogLevel.INFO
+        MParticle.LogLevel.WARNING -> RoktLogLevel.WARNING
+        MParticle.LogLevel.ERROR -> RoktLogLevel.ERROR
+        MParticle.LogLevel.NONE -> RoktLogLevel.NONE
     }
 
     private fun throwOnKitCreateError(message: String): Unit = throw IllegalArgumentException(message)
