@@ -20,6 +20,7 @@ import com.mparticle.kits.mocks.MockKitConfiguration
 import com.rokt.roktsdk.FulfillmentAttributes
 import com.rokt.roktsdk.Rokt
 import com.rokt.roktsdk.RoktEvent
+import com.rokt.roktsdk.logging.RoktLogLevel
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -1438,5 +1439,68 @@ class RoktKitTests {
             override fun onKitApiCalled(kitId: Int, used: Boolean?, vararg objects: Any?) {}
             override fun onKitApiCalled(methodName: String?, kitId: Int, used: Boolean?, vararg objects: Any?) {}
         }
+    }
+
+    @Test
+    fun testLogLevelMapping_VERBOSE() {
+        // Arrange
+        val method = RoktKit::class.java.getDeclaredMethod(
+            "toRoktLogLevel",
+            MParticle.LogLevel::class.java,
+        )
+        method.isAccessible = true
+
+        // Act & Assert
+        assertEquals(RoktLogLevel.VERBOSE, method.invoke(roktKit, MParticle.LogLevel.VERBOSE))
+    }
+
+    @Test
+    fun testLogLevelMapping_DEBUG() {
+        val method = RoktKit::class.java.getDeclaredMethod(
+            "toRoktLogLevel",
+            MParticle.LogLevel::class.java,
+        )
+        method.isAccessible = true
+        assertEquals(RoktLogLevel.DEBUG, method.invoke(roktKit, MParticle.LogLevel.DEBUG))
+    }
+
+    @Test
+    fun testLogLevelMapping_INFO() {
+        val method = RoktKit::class.java.getDeclaredMethod(
+            "toRoktLogLevel",
+            MParticle.LogLevel::class.java,
+        )
+        method.isAccessible = true
+        assertEquals(RoktLogLevel.INFO, method.invoke(roktKit, MParticle.LogLevel.INFO))
+    }
+
+    @Test
+    fun testLogLevelMapping_WARNING() {
+        val method = RoktKit::class.java.getDeclaredMethod(
+            "toRoktLogLevel",
+            MParticle.LogLevel::class.java,
+        )
+        method.isAccessible = true
+        assertEquals(RoktLogLevel.WARNING, method.invoke(roktKit, MParticle.LogLevel.WARNING))
+    }
+
+    @Test
+    fun testLogLevelMapping_ERROR() {
+        val method = RoktKit::class.java.getDeclaredMethod(
+            "toRoktLogLevel",
+            MParticle.LogLevel::class.java,
+        )
+        method.isAccessible = true
+        assertEquals(RoktLogLevel.ERROR, method.invoke(roktKit, MParticle.LogLevel.ERROR))
+    }
+
+    @Test
+    fun testLogLevelMapping_NONE() {
+        val method = RoktKit::class.java.getDeclaredMethod(
+            "toRoktLogLevel",
+            MParticle.LogLevel::class.java,
+        )
+        method.isAccessible = true
+        assertEquals(RoktLogLevel.NONE, method.invoke(roktKit, MParticle.LogLevel.NONE))
     }
 }
