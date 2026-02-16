@@ -18,7 +18,6 @@ import com.mparticle.commerce.CommerceEvent
 import com.mparticle.identity.MParticleUser
 import com.mparticle.internal.Logger
 import com.mparticle.kits.KitIntegration.CommerceListener
-import com.rokt.roktsdk.logging.RoktLogLevel
 import com.mparticle.kits.KitIntegration.IdentityListener
 import com.mparticle.kits.KitIntegration.RoktListener
 import com.mparticle.rokt.PlacementOptions
@@ -33,6 +32,7 @@ import com.rokt.roktsdk.Rokt.SdkFrameworkType.ReactNative
 import com.rokt.roktsdk.RoktEvent
 import com.rokt.roktsdk.RoktWidgetDimensionCallBack
 import com.rokt.roktsdk.Widget
+import com.rokt.roktsdk.logging.RoktLogLevel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
