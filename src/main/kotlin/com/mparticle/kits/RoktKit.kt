@@ -57,6 +57,7 @@ class RoktKit :
     CommerceListener,
     IdentityListener,
     RoktListener,
+    KitIntegration.BatchListener,
     Rokt.RoktCallback {
     private var applicationContext: Context? = null
     private var mpRoktEventCallback: MpRoktEventCallback? = null
@@ -134,6 +135,18 @@ class RoktKit :
     ): List<ReportingMessage> = emptyList()
 
     override fun logEvent(commerceEvent: CommerceEvent): List<ReportingMessage> = emptyList()
+
+    /*
+     * Overrides for BatchListener
+     */
+    override fun logBatch(jsonObject: org.json.JSONObject): List<ReportingMessage> {
+        try {
+            Rokt.receiveMParticleBatch(jsonObject.toString())
+        } catch (e: Exception) {
+            Logger.warning("RoktKit: Failed to forward batch to Rokt: ${e.message}")
+        }
+        return emptyList()
+    }
 
     /*
      * Overrides for IdentityListener
