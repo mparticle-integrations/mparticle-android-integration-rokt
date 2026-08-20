@@ -137,23 +137,41 @@ class RoktKit :
 
     /*
      * Overrides for IdentityListener
+     *
+     * A change of MPID means a different person is using the device. On a self-service terminal
+     * that is the transaction boundary: the Rokt session must end so the next customer is not
+     * folded into the previous customer's session.
+     *
+     * The kit is never told "the MPID changed" directly — identity completions are forwarded
+     * regardless — so the comparison is made here against the last MPID this kit acted on.
+     *
+     * onModifyCompleted is deliberately left empty: modify() changes identities on the current
+     * MPID and so can never cross a customer boundary.
+     *
+     * Unlike iOS there is no session-boundary trigger here. mParticle Android exposes no public
+     * beginSession/endSession and no automatic-session-tracking switch, so its sessions are purely
+     * lifecycle- and timeout-driven — the same signal that is deliberately ignored on iOS because
+     * "the app was backgrounded" says nothing about who is using the device.
      */
     override fun onIdentifyCompleted(
         mParticleUser: MParticleUser,
         filteredIdentityApiRequest: FilteredIdentityApiRequest,
     ) {
+        clearRoktSessionIfKnownUserChanged(mParticleUser)
     }
 
     override fun onLoginCompleted(
         mParticleUser: MParticleUser,
         filteredIdentityApiRequest: FilteredIdentityApiRequest,
     ) {
+        clearRoktSessionIfKnownUserChanged(mParticleUser)
     }
 
     override fun onLogoutCompleted(
         mParticleUser: MParticleUser,
         filteredIdentityApiRequest: FilteredIdentityApiRequest,
     ) {
+        clearRoktSessionIfKnownUserChanged(mParticleUser)
     }
 
     override fun onModifyCompleted(
@@ -163,6 +181,55 @@ class RoktKit :
     }
 
     override fun onUserIdentified(mParticleUser: MParticleUser) {}
+
+    /**
+     * Resets the Rokt session when a KNOWN user is replaced or departs.
+     *
+     * The MPID transition is typed — not every change means a different person:
+     * - anonymous → known: the same person acquiring an identity (unknown on the payment page,
+     *   known on the confirmation page). The session must survive, or one shopper's journey is
+     *   split and attribution breaks.
+     * - known → different known: a different person (the kiosk case) — reset.
+     * - known → anonymous: a logout — reset.
+     * - anonymous → anonymous: placeholder churn — no-op.
+     *
+     * "Known" means the user holds any user identity or is logged in; identity-set emptiness is
+     * used rather than isLoggedIn alone because kiosk customers identify() without logging in.
+     *
+     * The first MPID ever observed is recorded without resetting: there is no previous customer to
+     * separate from. State is persisted rather than held in memory so a terminal app that is
+     * relaunched mid-queue still recognises the next customer as a different person.
+     */
+    private fun clearRoktSessionIfKnownUserChanged(mParticleUser: MParticleUser) {
+        val mpid = mParticleUser.id
+        // 0 is mParticle's "no MPID assigned yet" sentinel, not a customer.
+        if (mpid == 0L) {
+            return
+        }
+        val isIdentified = mParticleUser.userIdentities.isNotEmpty() || mParticleUser.isLoggedIn
+        val prefs = kitPreferences ?: return
+        val lastSeenMpid = if (prefs.contains(LAST_SEEN_MPID)) prefs.getLong(LAST_SEEN_MPID, 0L) else null
+        val lastSeenIdentified = prefs.getBoolean(LAST_SEEN_IDENTIFIED, false)
+        prefs.edit()
+            .putLong(LAST_SEEN_MPID, mpid)
+            .putBoolean(LAST_SEEN_IDENTIFIED, isIdentified)
+            .apply()
+
+        if (lastSeenMpid == null) {
+            Logger.debug("RoktKit: recording first observed MPID; no session reset")
+            return
+        }
+        if (lastSeenMpid == mpid) {
+            return
+        }
+        if (!lastSeenIdentified) {
+            Logger.debug("RoktKit: anonymous user was identified; keeping the Rokt session")
+            return
+        }
+
+        Logger.debug("RoktKit: known user changed; resetting the Rokt session")
+        Rokt.clearSession()
+    }
 
     private fun logError(message: String, t: Throwable) {
         Logger.error(t, "RoktKit: $message")
@@ -483,6 +550,12 @@ class RoktKit :
         const val HASHED_EMAIL_USER_IDENTITY_TYPE = "hashedEmailUserIdentityType"
         const val MPID = "mpid"
         const val EVENT_NAME_SELECT_PLACEMENTS = "selectPlacements"
+
+        /** Last MPID this kit acted on, persisted so a relaunch still detects a customer change. */
+        const val LAST_SEEN_MPID = "rokt_last_seen_mpid"
+
+        /** Whether the last-seen user was identified; types the MPID transition (see below). */
+        const val LAST_SEEN_IDENTIFIED = "rokt_last_seen_mpid_was_identified"
         const val NO_ROKT_ACCOUNT_ID = "No Rokt account ID provided, can't initialize kit."
         const val NO_APP_VERSION_FOUND = "No App version found, can't initialize kit."
     }
