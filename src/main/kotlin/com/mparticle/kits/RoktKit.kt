@@ -397,12 +397,12 @@ class RoktKit :
     ): MutableMap<String, String> {
         val identityAttributes = mutableMapOf<String, String>()
         if (filterUser != null) {
+            val hashedEmailIdentity = parseIdentityType(hashedEmailUserIdentityType)
             for ((identityNumberKey, identityValue) in filterUser.userIdentities) {
-                val identityType = getStringForIdentity(identityNumberKey)
-                if (identityType.equals(hashedEmailUserIdentityType)) {
+                if (identityNumberKey == hashedEmailIdentity) {
                     identityAttributes["emailsha256"] = identityValue
                 } else {
-                    identityAttributes[identityType] = identityValue
+                    identityAttributes[getStringForIdentity(identityNumberKey)] = identityValue
                 }
             }
         }
@@ -442,6 +442,10 @@ class RoktKit :
             .build()
         MParticle.getInstance()?.logEvent(event)
     }
+
+    // Unrecognised values such as "Unknown" disable the mapping.
+    private fun parseIdentityType(value: String?): IdentityType? =
+        IdentityType.values().firstOrNull { it.name.equals(value, ignoreCase = true) }
 
     private fun getStringForIdentity(identityType: IdentityType): String = when (identityType) {
         IdentityType.Other -> "other"
